@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .tier-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+    height: 100%;
+    text-align: center;
+  }
+
+  .tier-header {
+    font-size: 72px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+
+  .exercise-label {
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .mini-gauge-wrapper {
+    position: relative;
+    width: 320px;
+    height: 320px;
+  }
+
+  .mini-gauge-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .mini-gauge-track {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 16;
+  }
+
+  .mini-gauge-fill {
+    fill: none;
+    stroke-width: 16;
+    stroke-linecap: round;
+  }
+
+  .mini-gauge-score {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-rounded);
+    font-size: 80px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .multiplier-text {
+    font-size: 40px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .weight-example {
+    font-size: 28px;
+    color: var(--gray);
+    font-weight: 500;
+  }
+
+  .bodyweight-ref {
+    font-size: 22px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 400;
+  }
+
+  .tier-subtitle-text {
+    font-size: 32px;
+    color: var(--gray);
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  .divider {
+    width: 120px;
+    height: 3px;
+    border-radius: 2px;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+<div class="template-container">
+  <div class="tier-container">
+    <div class="exercise-label" id="exerciseLabel">SQUAT</div>
+
+    <div class="tier-header" id="tierHeader">ADVANCED</div>
+
+    <div class="divider" id="divider"></div>
+
+    <div class="mini-gauge-wrapper" id="gaugeContainer">
+      <svg class="mini-gauge-svg" viewBox="0 0 320 320">
+        <circle class="mini-gauge-track" cx="160" cy="160" r="140" />
+        <circle class="mini-gauge-fill" id="gaugeFill" cx="160" cy="160" r="140" />
+      </svg>
+      <div class="mini-gauge-score" id="scoreNumber">67</div>
+    </div>
+
+    <div class="multiplier-text" id="multiplier">1.7x bodyweight</div>
+    <div class="weight-example" id="weightExample">255 lbs / 116 kg</div>
+    <div class="bodyweight-ref" id="bodyweightRef">Based on 150 lbs / 68 kg bodyweight</div>
+
+    <div class="tier-subtitle-text" id="tierSubtitle">"Above average"</div>
+  </div>
+
+  <div class="watermark">PRPath</div>
+</div>
+
+<script>
+const TIERS = {
+  beginner:     { range: [0, 16],   color: '#FF3B30' },
+  novice:       { range: [17, 33],  color: '#FF9500' },
+  intermediate: { range: [34, 50],  color: '#FFCC00' },
+  advanced:     { range: [51, 67],  color: '#34C759' },
+  elite:        { range: [68, 84],  color: '#00B0FF' },
+  worldclass:   { range: [85, 100], color: '#AF52DE' }
+};
+
+function getTierColor(score) {
+  for (const t of Object.values(TIERS)) {
+    if (score >= t.range[0] && score <= t.range[1]) return t.color;
+  }
+  return TIERS.beginner.color;
+}
+
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  const tier = params.get('tier') || 'Advanced';
+  const score = parseInt(params.get('score') || '67');
+  const multiplier = params.get('multiplier') || '1.7x bodyweight';
+  const weightExample = params.get('weight_example') || '255 lbs / 116 kg';
+  const tierSubtitle = params.get('tier_subtitle') || 'Above average';
+  const exercise = params.get('exercise') || 'Squat';
+  const bodyweightRef = params.get('bodyweight_ref') || '150 lbs / 68 kg';
+  const colorOverride = params.get('gauge_color');
+  const showGauge = params.get('show_gauge') !== 'false';
+  const bg = params.get('background') || '#1C1C1E';
+
+  document.body.style.background = bg;
+  document.querySelector('.template-container').style.background = bg;
+
+  const color = colorOverride || getTierColor(score);
+
+  document.getElementById('exerciseLabel').textContent = exercise.toUpperCase();
+  document.getElementById('tierHeader').textContent = tier.toUpperCase();
+  document.getElementById('tierHeader').style.color = color;
+  document.getElementById('divider').style.background = color;
+  document.getElementById('multiplier').textContent = multiplier;
+  document.getElementById('weightExample').textContent = weightExample;
+  document.getElementById('bodyweightRef').textContent = 'Based on ' + bodyweightRef + ' bodyweight';
+  document.getElementById('tierSubtitle').textContent = '"' + tierSubtitle + '"';
+  document.getElementById('scoreNumber').style.color = color;
+  document.getElementById('scoreNumber').textContent = score;
+
+  if (!showGauge) {
+    document.getElementById('gaugeContainer').style.display = 'none';
+  } else {
+    const circumference = 2 * Math.PI * 140;
+    const fill = document.getElementById('gaugeFill');
+    fill.style.stroke = color;
+    fill.style.strokeDasharray = circumference;
+    fill.style.strokeDashoffset = circumference * (1 - score / 100);
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PRPath GENESIS Template QA</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; color: #fff; font-family: -apple-system, system-ui, sans-serif; padding: 40px; }
+  h1 { font-size: 32px; margin-bottom: 10px; color: #FF6B35; }
+  h2 { font-size: 24px; margin: 40px 0 15px; color: #8E8E93; }
+  .subtitle { color: #8E8E93; font-size: 14px; margin-bottom: 40px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; }
+  .card { background: #1C1C1E; border-radius: 12px; overflow: hidden; }
+  .card-label { padding: 12px 16px; font-size: 14px; font-weight: 600; color: #FF6B35; background: #2A2A2C; display: flex; justify-content: space-between; align-items: center; }
+  .card-label code { font-size: 11px; color: #8E8E93; }
+  iframe { width: 100%; height: 500px; border: none; transform-origin: top left; }
+  .scale-wrapper { overflow: hidden; height: 500px; }
+</style>
+</head>
+<body>
+  <h1>PRPath GENESIS — Template QA</h1>
+  <p class="subtitle">All templates rendered with sample data at scaled-down resolution. Open individually for full 1080x1350.</p>
+
+  <h2>P0 — Core Templates</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">
+        Strength Score — Advanced (67)
+        <code>strength_score.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../strength_score.html?score=67&exercise=Squat&tier=Advanced&bodyweight=180%20lbs&weight_lifted=306%20lbs&multiplier=1.7x"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">
+        Strength Score — Elite (78)
+        <code>strength_score.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../strength_score.html?score=78&exercise=Bench%20Press&tier=Elite&bodyweight=175%20lbs&weight_lifted=315%20lbs&multiplier=1.8x"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">
+        Strength Score — Beginner (12)
+        <code>strength_score.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../strength_score.html?score=12&exercise=Deadlift&bodyweight=160%20lbs&weight_lifted=135%20lbs&multiplier=0.8x"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">
+        Strength Score — World Class (95)
+        <code>strength_score.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../strength_score.html?score=95&exercise=Squat&bodyweight=200%20lbs&weight_lifted=600%20lbs&multiplier=3.0x"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">
+        Muscle Body Map — Front
+        <code>muscle_body_map.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../muscle_body_map.html?view=front&muscle_pectoralis=55&muscle_deltoid=72&muscle_biceps=40&muscle_quadriceps=88&muscle_abdominals=30&muscle_trapezius=25"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">
+        Muscle Body Map — Back
+        <code>muscle_body_map.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../muscle_body_map.html?view=back&muscle_latissimus_dorsi=60&muscle_gluteus_maximus=75&muscle_hamstrings=45&muscle_deltoid=72&muscle_trapezius_lower=50&muscle_gastrocnemius=35"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">
+        Tier Card — Advanced
+        <code>tier_card.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../tier_card.html?tier=Advanced&score=67&multiplier=1.7x%20bodyweight&weight_example=255%20lbs%20/%20116%20kg&tier_subtitle=Above%20average&exercise=Squat&bodyweight_ref=150%20lbs%20/%2068%20kg"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">
+        Tier Card — World Class
+        <code>tier_card.html</code>
+      </div>
+      <div class="scale-wrapper">
+        <iframe src="../tier_card.html?tier=World%20Class&score=92&multiplier=3.0x%20bodyweight&weight_example=450%20lbs%20/%20204%20kg&tier_subtitle=Top%201%25&exercise=Deadlift&bodyweight_ref=150%20lbs%20/%2068%20kg"></iframe>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

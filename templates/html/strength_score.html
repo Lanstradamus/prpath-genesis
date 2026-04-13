@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .exercise-name {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .gauge-wrapper {
+    position: relative;
+    width: 480px;
+    height: 480px;
+  }
+
+  .gauge-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .gauge-track {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 20;
+  }
+
+  .gauge-fill {
+    fill: none;
+    stroke-width: 20;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease;
+  }
+
+  .gauge-score {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .gauge-score .number {
+    font-family: var(--font-rounded);
+    font-size: 120px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .gauge-score .out-of {
+    font-size: 28px;
+    color: var(--gray);
+    font-weight: 500;
+  }
+
+  .tier-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tier-subtitle {
+    font-size: 26px;
+    color: var(--gray);
+    font-weight: 500;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 60px;
+    margin-top: 20px;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--font-rounded);
+  }
+
+  .stat-label {
+    font-size: 18px;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .progress-wrapper {
+    width: 500px;
+    margin-top: 10px;
+  }
+
+  .progress-track {
+    height: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="template-container">
+  <div class="score-container">
+    <div class="section-label" id="sectionLabel">
+      <span>⚡</span>
+      <span>STRENGTH SCORE</span>
+    </div>
+
+    <div class="exercise-name" id="exerciseName">Squat</div>
+
+    <div class="gauge-wrapper">
+      <svg class="gauge-svg" viewBox="0 0 480 480">
+        <circle class="gauge-track" cx="240" cy="240" r="210" />
+        <circle class="gauge-fill" id="gaugeFill" cx="240" cy="240" r="210" />
+      </svg>
+      <div class="gauge-score">
+        <div class="number" id="scoreNumber">67</div>
+        <div class="out-of">/ 100</div>
+      </div>
+    </div>
+
+    <div class="tier-section">
+      <div class="tier-badge" id="tierBadge">
+        <span id="tierIcon"></span>
+        <span id="tierName">ADVANCED</span>
+      </div>
+      <div class="tier-subtitle" id="tierSubtitle">Above average</div>
+    </div>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-item">
+        <div class="stat-value" id="weightLifted">306 lbs</div>
+        <div class="stat-label">Weight Lifted</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="bodyweight">180 lbs</div>
+        <div class="stat-label">Bodyweight</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="multiplier">1.7x</div>
+        <div class="stat-label">BW Ratio</div>
+      </div>
+    </div>
+
+    <div class="progress-wrapper">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="watermark">PRPath</div>
+</div>
+
+<script>
+const TIERS = {
+  beginner:     { range: [0, 16],   color: '#FF3B30', icon: '🚶', desc: 'Just starting out' },
+  novice:       { range: [17, 33],  color: '#FF9500', icon: '🏃', desc: 'Building foundation' },
+  intermediate: { range: [34, 50],  color: '#FFCC00', icon: '🏋️', desc: 'Solid progress' },
+  advanced:     { range: [51, 67],  color: '#34C759', icon: '⚡', desc: 'Above average' },
+  elite:        { range: [68, 84],  color: '#00B0FF', icon: '⭐', desc: 'Top 10%' },
+  worldclass:   { range: [85, 100], color: '#AF52DE', icon: '👑', desc: 'Top 1%' }
+};
+
+function getTier(score) {
+  for (const [name, t] of Object.entries(TIERS)) {
+    if (score >= t.range[0] && score <= t.range[1]) return { name, ...t };
+  }
+  return { name: 'beginner', ...TIERS.beginner };
+}
+
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  const score = parseInt(params.get('score') || '67');
+  const exercise = params.get('exercise') || 'Squat';
+  const tierOverride = params.get('tier');
+  const colorOverride = params.get('gauge_color');
+  const subtitle = params.get('tier_subtitle');
+  const bodyweight = params.get('bodyweight') || '180 lbs';
+  const weightLifted = params.get('weight_lifted') || '306 lbs';
+  const multiplier = params.get('multiplier') || '1.7x';
+  const bg = params.get('background') || '#1C1C1E';
+
+  document.body.style.background = bg;
+  document.querySelector('.template-container').style.background = bg;
+
+  const tier = getTier(score);
+  const color = colorOverride || tier.color;
+  const tierName = tierOverride || tier.name.replace('worldclass', 'World Class');
+
+  document.getElementById('exerciseName').textContent = exercise;
+  document.getElementById('scoreNumber').textContent = score;
+  document.getElementById('scoreNumber').style.color = color;
+  document.getElementById('sectionLabel').style.color = color;
+
+  document.getElementById('tierName').textContent = tierName.toUpperCase();
+  document.getElementById('tierIcon').textContent = tier.icon;
+  document.getElementById('tierBadge').style.background = color + '40';
+  document.getElementById('tierSubtitle').textContent = subtitle || tier.desc;
+
+  document.getElementById('weightLifted').textContent = weightLifted;
+  document.getElementById('bodyweight').textContent = bodyweight;
+  document.getElementById('multiplier').textContent = multiplier;
+
+  // Gauge
+  const circumference = 2 * Math.PI * 210;
+  const fill = document.getElementById('gaugeFill');
+  fill.style.stroke = color;
+  fill.style.strokeDasharray = circumference;
+  fill.style.strokeDashoffset = circumference * (1 - score / 100);
+
+  // Progress bar
+  const pf = document.getElementById('progressFill');
+  pf.style.width = score + '%';
+  pf.style.background = `linear-gradient(to right, ${color}99, ${color})`;
+
+  // Hide stats row if no data provided
+  if (!params.get('weight_lifted') && !params.get('bodyweight') && !params.get('multiplier')) {
+    // Keep defaults visible for demo
+  }
+}
+
+init();
+</script>
+</body>
+</html>
