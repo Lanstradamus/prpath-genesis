@@ -20,6 +20,17 @@
     position: absolute;
     top: 50px;
     left: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-top img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .logo-top span {
     font-family: var(--font-rounded);
     font-size: 32px;
     font-weight: 800;
@@ -110,7 +121,7 @@
 </head>
 <body>
 <div class="template-container">
-  <div class="logo-top">PRPath</div>
+  <div class="logo-top"><img src="shared/prpath-logo.png" alt=""><span>PRPath</span></div>
 
   <div class="cover-container">
     <div class="hook-text" id="hookText"></div>

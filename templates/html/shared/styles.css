@@ -109,9 +109,21 @@ html, body {
   position: absolute;
   bottom: 40px;
   right: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.4;
+}
+
+.watermark img {
+  width: 36px;
+  height: 36px;
+}
+
+.watermark span {
   font-family: var(--font-rounded);
   font-size: 28px;
   font-weight: 800;
-  color: rgba(255, 107, 53, 0.3);
+  color: var(--orange);
   letter-spacing: 1px;
 }
