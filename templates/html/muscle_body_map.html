@@ -174,14 +174,33 @@ function init() {
     if (musclesParam) muscleData = JSON.parse(decodeURIComponent(musclesParam));
   } catch(e) {}
 
+  // Support muscle_NAME=score format (auto-maps score to tier color)
   for (const [key, val] of params.entries()) {
-    if (key.startsWith('muscle_')) {
+    if (key.startsWith('muscle_') && !key.endsWith('_color') && !key.endsWith('_intensity')) {
       const muscleName = key.replace('muscle_', '');
       const score = parseInt(val);
       if (!isNaN(score)) {
         const tier = getTierFromScore(score);
         muscleData[muscleName] = { active: true, color: TIER_COLORS[tier], intensity: 0.7, score: score };
       }
+    }
+  }
+
+  // Support NAME_color + NAME_intensity format (direct color control)
+  // e.g. chest_color=%23FF3B30&chest_intensity=0.8
+  var ALIAS_MAP = {
+    chest: 'pectoralis', shoulders: 'deltoid', core: 'abdominals', abs: 'abdominals',
+    quads: 'quadriceps', calves: 'gastrocnemius', traps: 'trapezius',
+    upper_back: 'infraspinatus_teres_major', mid_traps: 'trapezius_lower',
+    lats: 'latissimus_dorsi', glutes: 'gluteus_maximus', glute_med: 'gluteus_medius2'
+  };
+  for (const [key, val] of params.entries()) {
+    if (key.endsWith('_color')) {
+      var base = key.replace('_color', '');
+      var muscleId = ALIAS_MAP[base] || base;
+      var intensity = parseFloat(params.get(base + '_intensity') || '0.7');
+      var color = val.startsWith('#') ? val : '#' + val;
+      muscleData[muscleId] = { active: true, color: color, intensity: intensity };
     }
   }
 

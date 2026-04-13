@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .cover-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    gap: 50px;
+    padding: 80px;
+  }
+
+  .logo-top {
+    position: absolute;
+    top: 50px;
+    left: 60px;
+    font-family: var(--font-rounded);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--orange);
+    letter-spacing: 1px;
+  }
+
+  .hook-text {
+    font-size: 82px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #fff;
+    max-width: 900px;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+  }
+
+  .hook-text .accent {
+    color: var(--orange);
+  }
+
+  .mini-gauge-preview {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+
+  .mini-score {
+    position: relative;
+    width: 120px;
+    height: 120px;
+  }
+
+  .mini-score svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .mini-score .track {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 8;
+  }
+
+  .mini-score .fill {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+
+  .mini-score .number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-rounded);
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .range-label {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--gray);
+  }
+
+  .bw-ref {
+    font-size: 24px;
+    color: rgba(255,255,255,0.35);
+    font-weight: 400;
+    position: absolute;
+    bottom: 50px;
+  }
+
+  .swipe-hint {
+    position: absolute;
+    bottom: 50px;
+    right: 60px;
+    font-size: 22px;
+    color: rgba(255,255,255,0.25);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="template-container">
+  <div class="logo-top">PRPath</div>
+
+  <div class="cover-container">
+    <div class="hook-text" id="hookText"></div>
+
+    <div class="mini-gauge-preview" id="gaugePreview" style="display:none">
+    </div>
+  </div>
+
+  <div class="bw-ref" id="bwRef" style="display:none"></div>
+  <div class="swipe-hint">Swipe to see yours →</div>
+</div>
+
+<script>
+const TIERS = {
+  beginner:     { color: '#FF3B30' },
+  novice:       { color: '#FF9500' },
+  intermediate: { color: '#FFCC00' },
+  advanced:     { color: '#34C759' },
+  elite:        { color: '#00B0FF' },
+  worldclass:   { color: '#AF52DE' }
+};
+
+function getTierColor(score) {
+  if (score <= 16) return TIERS.beginner.color;
+  if (score <= 33) return TIERS.novice.color;
+  if (score <= 50) return TIERS.intermediate.color;
+  if (score <= 67) return TIERS.advanced.color;
+  if (score <= 84) return TIERS.elite.color;
+  return TIERS.worldclass.color;
+}
+
+function init() {
+  var params = new URLSearchParams(window.location.search);
+  var hookText = params.get('hook_text') || "What's your SQUAT SCORE?";
+  var accentWord = params.get('accent_word') || '';
+  var bg = params.get('background') || '#1C1C1E';
+  var showGauge = params.get('show_gauge_preview') === 'true';
+  var scoreRange = params.get('score_range') || '';
+  var bwRef = params.get('bw_ref') || '';
+
+  document.body.style.background = bg;
+  document.querySelector('.template-container').style.background = bg;
+
+  var hookEl = document.getElementById('hookText');
+  if (accentWord) {
+    var regex = new RegExp('(' + accentWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    var parts = hookText.split(regex);
+    parts.forEach(function(part) {
+      var span = document.createElement('span');
+      if (part.toLowerCase() === accentWord.toLowerCase()) {
+        span.className = 'accent';
+      }
+      span.textContent = part;
+      hookEl.appendChild(span);
+    });
+  } else {
+    hookEl.textContent = hookText;
+  }
+
+  if (showGauge && scoreRange) {
+    var scores = scoreRange.split('-').map(Number);
+    if (scores.length === 2) {
+      var preview = document.getElementById('gaugePreview');
+      preview.style.display = 'flex';
+
+      scores.forEach(function(score) {
+        var color = getTierColor(score);
+        var wrapper = document.createElement('div');
+        wrapper.className = 'mini-score';
+
+        var circumference = 2 * Math.PI * 45;
+        var offset = circumference * (1 - score / 100);
+
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 120 120');
+
+        var track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        track.setAttribute('cx', '60');
+        track.setAttribute('cy', '60');
+        track.setAttribute('r', '45');
+        track.setAttribute('class', 'track');
+        svg.appendChild(track);
+
+        var fill = document.createElementNS('http://www.w3.org/2000/svg', 'fill');
+        fill = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        fill.setAttribute('cx', '60');
+        fill.setAttribute('cy', '60');
+        fill.setAttribute('r', '45');
+        fill.setAttribute('class', 'fill');
+        fill.style.stroke = color;
+        fill.style.strokeDasharray = circumference;
+        fill.style.strokeDashoffset = offset;
+        svg.appendChild(fill);
+
+        wrapper.appendChild(svg);
+
+        var num = document.createElement('div');
+        num.className = 'number';
+        num.style.color = color;
+        num.textContent = score;
+        wrapper.appendChild(num);
+
+        preview.appendChild(wrapper);
+      });
+
+      var label = document.createElement('div');
+      label.className = 'range-label';
+      label.textContent = 'Where do you land?';
+      preview.appendChild(label);
+    }
+  }
+
+  if (bwRef) {
+    var bwEl = document.getElementById('bwRef');
+    bwEl.style.display = 'block';
+    bwEl.textContent = bwRef;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

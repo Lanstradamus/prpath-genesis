@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .cta-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    gap: 50px;
+  }
+
+  .logo-large {
+    font-family: var(--font-rounded);
+    font-size: 96px;
+    font-weight: 800;
+    color: var(--orange);
+    letter-spacing: 2px;
+  }
+
+  .logo-icon {
+    width: 140px;
+    height: 140px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    margin-bottom: 10px;
+  }
+
+  .tagline {
+    font-size: 40px;
+    font-weight: 600;
+    color: #fff;
+    max-width: 700px;
+    line-height: 1.3;
+  }
+
+  .tagline-sub {
+    font-size: 26px;
+    color: var(--gray);
+    font-weight: 400;
+    max-width: 600px;
+  }
+
+  .app-store-badge {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    color: #000;
+    padding: 18px 40px;
+    border-radius: 16px;
+    font-size: 28px;
+    font-weight: 600;
+    margin-top: 20px;
+  }
+
+  .app-store-badge .apple-icon {
+    font-size: 36px;
+  }
+
+  .app-store-badge .badge-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+  }
+
+  .app-store-badge .badge-small {
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  .app-store-badge .badge-big {
+    font-size: 30px;
+    font-weight: 600;
+  }
+
+  .free-label {
+    font-size: 24px;
+    color: var(--orange);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .tier-dots {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .tier-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+<div class="template-container">
+  <div class="cta-container">
+    <div class="logo-icon">⚡</div>
+
+    <div class="logo-large">PRPath</div>
+
+    <div class="tagline" id="tagline">Track your strength score</div>
+
+    <div class="tagline-sub" id="taglineSub"></div>
+
+    <div class="free-label" id="freeLabel">Free on the App Store</div>
+
+    <div class="app-store-badge" id="appStoreBadge">
+      <div class="apple-icon"></div>
+      <div class="badge-text">
+        <span class="badge-small">Download on the</span>
+        <span class="badge-big">App Store</span>
+      </div>
+    </div>
+
+    <div class="tier-dots">
+      <div class="tier-dot" style="background:#FF3B30"></div>
+      <div class="tier-dot" style="background:#FF9500"></div>
+      <div class="tier-dot" style="background:#FFCC00"></div>
+      <div class="tier-dot" style="background:#34C759"></div>
+      <div class="tier-dot" style="background:#00B0FF"></div>
+      <div class="tier-dot" style="background:#AF52DE"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function init() {
+  var params = new URLSearchParams(window.location.search);
+  var tagline = params.get('tagline') || 'Track your strength score';
+  var taglineSub = params.get('tagline_sub') || '';
+  var bg = params.get('background') || '#1C1C1E';
+  var showBadge = params.get('show_app_store_badge') !== 'false';
+  var freeText = params.get('free_text') || 'Free on the App Store';
+
+  document.body.style.background = bg;
+  document.querySelector('.template-container').style.background = bg;
+
+  document.getElementById('tagline').textContent = tagline;
+  document.getElementById('freeLabel').textContent = freeText;
+
+  if (taglineSub) {
+    document.getElementById('taglineSub').textContent = taglineSub;
+  }
+
+  if (!showBadge) {
+    document.getElementById('appStoreBadge').style.display = 'none';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
