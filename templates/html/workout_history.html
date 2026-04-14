@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  /* Matches HistoryContainerView.swift - segmented tab + timeline list of workout cards.
+     NOTE: Real app uses a timeline list (NOT a calendar heatmap).
+     Segmented tabs: Workouts | Nutrition */
+  .history-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100%;
+    padding: 60px 50px 100px;
+    gap: 24px;
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .page-title {
+    font-size: 44px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .date-filter-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .segmented-control {
+    display: flex;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .segment {
+    flex: 1;
+    padding: 14px 24px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--gray);
+    border-radius: 10px;
+  }
+
+  .segment.active {
+    background: var(--bg-card);
+    color: #fff;
+  }
+
+  .search-bar {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--gray);
+    font-size: 22px;
+  }
+
+  .workout-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+  }
+
+  /* WorkoutTimelineCard layout from the real app */
+  .workout-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .workout-date-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .workout-date {
+    font-size: 18px;
+    color: var(--orange);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .workout-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .stat-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.06);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 18px;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .stat-pill .icon { font-size: 16px; }
+  .stat-pill .label { color: var(--gray); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="template-container">
+  <div class="history-layout">
+    <div class="header-row">
+      <div class="page-title">History</div>
+      <div class="date-filter-btn">📅</div>
+    </div>
+
+    <div class="segmented-control">
+      <div class="segment active">Workouts</div>
+      <div class="segment">Nutrition</div>
+    </div>
+
+    <div class="search-bar">
+      <span>🔍</span>
+      <span>Search workouts</span>
+    </div>
+
+    <div class="workout-list" id="workoutList"></div>
+  </div>
+
+  <div class="watermark"><img src="shared/prpath-logo.png" alt=""><span>PRPath</span></div>
+</div>
+
+<script>
+// Sample workouts — PC Claude's pipeline can pass ?workouts=JSON or use individual params
+var DEFAULT_WORKOUTS = [
+  { date: 'Apr 12', name: 'Push Day', duration: '47 min', volume: '12,450 lbs', sets: '18', exercises: '5' },
+  { date: 'Apr 10', name: 'Pull Day', duration: '52 min', volume: '15,200 lbs', sets: '20', exercises: '6' },
+  { date: 'Apr 08', name: 'Leg Day', duration: '61 min', volume: '24,800 lbs', sets: '22', exercises: '6' },
+  { date: 'Apr 06', name: 'Upper Body', duration: '44 min', volume: '10,300 lbs', sets: '16', exercises: '5' }
+];
+
+function renderWorkouts(workouts) {
+  var list = document.getElementById('workoutList');
+  while (list.firstChild) list.removeChild(list.firstChild);
+
+  workouts.forEach(function(w) {
+    var card = document.createElement('div');
+    card.className = 'workout-card';
+
+    var topRow = document.createElement('div');
+    topRow.className = 'workout-date-row';
+    var dateEl = document.createElement('div');
+    dateEl.className = 'workout-date';
+    dateEl.textContent = w.date;
+    topRow.appendChild(dateEl);
+    card.appendChild(topRow);
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'workout-name';
+    nameEl.textContent = w.name;
+    card.appendChild(nameEl);
+
+    var pills = document.createElement('div');
+    pills.className = 'stat-pills';
+
+    var statsData = [
+      { icon: '⏱', value: w.duration, label: '' },
+      { icon: '📊', value: w.volume, label: 'volume' },
+      { icon: '✓', value: w.sets, label: 'sets' },
+      { icon: '💪', value: w.exercises, label: 'exercises' }
+    ];
+    statsData.forEach(function(s) {
+      if (!s.value) return;
+      var pill = document.createElement('div');
+      pill.className = 'stat-pill';
+      var icon = document.createElement('span');
+      icon.className = 'icon';
+      icon.textContent = s.icon;
+      pill.appendChild(icon);
+      var val = document.createElement('span');
+      val.textContent = s.value;
+      pill.appendChild(val);
+      if (s.label) {
+        var lbl = document.createElement('span');
+        lbl.className = 'label';
+        lbl.textContent = s.label;
+        pill.appendChild(lbl);
+      }
+      pills.appendChild(pill);
+    });
+    card.appendChild(pills);
+
+    list.appendChild(card);
+  });
+}
+
+function init() {
+  var params = new URLSearchParams(window.location.search);
+  var bg = params.get('background') || '#1C1C1E';
+  document.body.style.background = bg;
+  document.querySelector('.template-container').style.background = bg;
+
+  var workouts = DEFAULT_WORKOUTS;
+  try {
+    var wParam = params.get('workouts');
+    if (wParam) workouts = JSON.parse(decodeURIComponent(wParam));
+  } catch(e) {}
+
+  renderWorkouts(workouts);
+}
+
+init();
+</script>
+</body>
+</html>

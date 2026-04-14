@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  /* IMPORTANT: This matches the REAL PRPath app — numeric scores + tier names
+     (Beginner/Novice/Intermediate/Advanced/Elite/World Class).
+     The app does NOT use letter grades (A, B+, C-). Any spec that asked for
+     letter grades was incorrect — the source of truth is StrengthStandards.swift. */
+
+  .balance-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 60px 50px 100px;
+    gap: 30px;
+  }
+
+  .title-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .section-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .title-text {
+    font-size: 50px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .overall-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .overall-score {
+    font-family: var(--font-rounded);
+    font-size: 88px;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 140px;
+  }
+
+  .overall-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .overall-label {
+    font-size: 16px;
+    color: var(--gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .overall-tier {
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .overall-bar-track {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .overall-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .muscle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .muscle-row {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    position: relative;
+  }
+
+  .muscle-row.weakest {
+    background: linear-gradient(135deg, rgba(255, 149, 0, 0.15), var(--bg-card));
+    border: 1px solid rgba(255, 149, 0, 0.3);
+  }
+
+  .muscle-tier-bar {
+    width: 6px;
+    align-self: stretch;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .muscle-name {
+    flex: 1;
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .muscle-tier-name {
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .muscle-score {
+    font-family: var(--font-rounded);
+    font-size: 32px;
+    font-weight: 700;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .weakest-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 149, 0, 0.2);
+    color: var(--tier-novice);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+<div class="template-container">
+  <div class="balance-layout">
+    <div class="title-row">
+      <div class="section-label"><span>⚡</span><span>Muscle Balance</span></div>
+      <div class="title-text">Strength Breakdown</div>
+    </div>
+
+    <div class="overall-card">
+      <div class="overall-score" id="overallScore">72</div>
+      <div class="overall-info">
+        <div class="overall-label">Overall Balance</div>
+        <div class="overall-tier" id="overallTier">Elite</div>
+        <div class="overall-bar-track"><div class="overall-bar-fill" id="overallBar"></div></div>
+      </div>
+    </div>
+
+    <div class="muscle-list" id="muscleList"></div>
+  </div>
+
+  <div class="watermark"><img src="shared/prpath-logo.png" alt=""><span>PRPath</span></div>
+</div>
+
+<script>
+var TIERS = [
+  { name: 'Beginner',    range: [0, 16],   color: '#FF3B30' },
+  { name: 'Novice',      range: [17, 33],  color: '#FF9500' },
+  { name: 'Intermediate', range: [34, 50], color: '#FFCC00' },
+  { name: 'Advanced',    range: [51, 67],  color: '#34C759' },
+  { name: 'Elite',       range: [68, 84],  color: '#00B0FF' },
+  { name: 'World Class', range: [85, 100], color: '#AF52DE' }
+];
+
+function tierForScore(score) {
+  for (var i = 0; i < TIERS.length; i++) {
+    if (score >= TIERS[i].range[0] && score <= TIERS[i].range[1]) return TIERS[i];
+  }
+  return TIERS[0];
+}
+
+function init() {
+  var params = new URLSearchParams(window.location.search);
+  var bg = params.get('background') || '#1C1C1E';
+  document.body.style.background = bg;
+  document.querySelector('.template-container').style.background = bg;
+
+  // Overall score — required param, defaults to 72
+  var overallScore = parseInt(params.get('overall_score') || '72');
+  var overallTier = tierForScore(overallScore);
+  var overallScoreEl = document.getElementById('overallScore');
+  overallScoreEl.textContent = overallScore;
+  overallScoreEl.style.color = overallTier.color;
+  var overallTierEl = document.getElementById('overallTier');
+  overallTierEl.textContent = overallTier.name;
+  overallTierEl.style.color = overallTier.color;
+  var bar = document.getElementById('overallBar');
+  bar.style.width = overallScore + '%';
+  bar.style.background = 'linear-gradient(to right, ' + overallTier.color + '99, ' + overallTier.color + ')';
+
+  // Per-muscle scores via individual params: chest=80, legs=22, back=65 etc.
+  // These use the actual muscle group names from the app, not letter grades.
+  var muscleParams = [
+    { key: 'chest',     label: 'Chest' },
+    { key: 'back',      label: 'Back' },
+    { key: 'shoulders', label: 'Shoulders' },
+    { key: 'arms',      label: 'Arms' },
+    { key: 'legs',      label: 'Legs' },
+    { key: 'core',      label: 'Core' }
+  ];
+
+  var weakestScore = 999;
+  var weakestKey = null;
+  var muscles = [];
+  muscleParams.forEach(function(m) {
+    var val = params.get(m.key);
+    if (val != null) {
+      var score = parseInt(val);
+      if (!isNaN(score)) {
+        muscles.push({ label: m.label, score: score });
+        if (score < weakestScore) { weakestScore = score; weakestKey = m.label; }
+      }
+    }
+  });
+
+  var weakestOverride = params.get('weakest');
+  if (weakestOverride) weakestKey = weakestOverride;
+
+  // Fallback sample data
+  if (muscles.length === 0) {
+    muscles = [
+      { label: 'Chest', score: 78 },
+      { label: 'Back', score: 65 },
+      { label: 'Shoulders', score: 70 },
+      { label: 'Arms', score: 62 },
+      { label: 'Legs', score: 22 },
+      { label: 'Core', score: 55 }
+    ];
+    weakestKey = 'Legs';
+  }
+
+  var list = document.getElementById('muscleList');
+  muscles.forEach(function(m) {
+    var tier = tierForScore(m.score);
+    var row = document.createElement('div');
+    row.className = 'muscle-row' + (m.label === weakestKey ? ' weakest' : '');
+
+    var tierBar = document.createElement('div');
+    tierBar.className = 'muscle-tier-bar';
+    tierBar.style.background = tier.color;
+    row.appendChild(tierBar);
+
+    var nameCol = document.createElement('div');
+    nameCol.className = 'muscle-name';
+    nameCol.appendChild(document.createTextNode(m.label));
+    if (m.label === weakestKey) {
+      nameCol.appendChild(document.createElement('br'));
+      var badge = document.createElement('span');
+      badge.className = 'weakest-badge';
+      badge.textContent = '⚠ Weakest';
+      nameCol.appendChild(badge);
+    }
+    row.appendChild(nameCol);
+
+    var tierLbl = document.createElement('div');
+    tierLbl.className = 'muscle-tier-name';
+    tierLbl.textContent = tier.name;
+    tierLbl.style.color = tier.color;
+    row.appendChild(tierLbl);
+
+    var scoreEl = document.createElement('div');
+    scoreEl.className = 'muscle-score';
+    scoreEl.textContent = m.score;
+    scoreEl.style.color = tier.color;
+    row.appendChild(scoreEl);
+
+    list.appendChild(row);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

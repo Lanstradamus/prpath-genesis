@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  /* Matches WorkoutCompletionView.swift - hero section with radial gradient glow + trophy icon */
+  .pr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 36px;
+    padding: 60px 50px;
+    position: relative;
+  }
+
+  .pr-container.has-pr::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent, rgba(255, 107, 53, 0.03));
+    pointer-events: none;
+  }
+
+  .hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .hero-icon-wrapper {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 235, 0, 0.2) 0%, rgba(255, 107, 53, 0.08) 40%, transparent 70%);
+  }
+
+  .hero-circle {
+    width: 144px;
+    height: 144px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 235, 0, 0.35), rgba(255, 107, 53, 0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .trophy-icon {
+    font-size: 80px;
+    filter: drop-shadow(0 2px 8px rgba(255, 180, 0, 0.4));
+  }
+
+  .hero-title {
+    font-size: 64px;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+  }
+
+  .hero-subtitle {
+    font-size: 26px;
+    color: var(--gray);
+    font-weight: 500;
+  }
+
+  .pr-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 720px;
+  }
+
+  .pr-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pr-card .accent-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+  }
+
+  .pr-type-1rm .accent-bar { background: #FFCC00; }
+  .pr-type-max_weight .accent-bar { background: var(--orange); }
+  .pr-type-max_volume .accent-bar { background: var(--tier-advanced); }
+
+  .pr-type-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .pr-type-1rm .pr-type-icon { background: rgba(255, 204, 0, 0.2); }
+  .pr-type-max_weight .pr-type-icon { background: rgba(255, 107, 53, 0.2); }
+  .pr-type-max_volume .pr-type-icon { background: rgba(52, 199, 89, 0.2); }
+
+  .pr-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pr-exercise {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .pr-type-label {
+    font-size: 16px;
+    color: var(--gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .pr-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--font-rounded);
+  }
+
+  .pr-improvement {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    background: rgba(52, 199, 89, 0.2);
+    color: var(--tier-advanced);
+    border-radius: 999px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: var(--font-rounded);
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    top: -20px;
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body>
+<div class="template-container">
+  <div class="pr-container has-pr" id="prContainer">
+    <div class="hero-section">
+      <div class="hero-icon-wrapper">
+        <div class="hero-glow"></div>
+        <div class="hero-circle">
+          <div class="trophy-icon">🏆</div>
+        </div>
+      </div>
+      <div class="hero-title" id="heroTitle"></div>
+      <div class="hero-subtitle" id="heroSubtitle"></div>
+    </div>
+
+    <div class="pr-cards" id="prCards"></div>
+  </div>
+
+  <div class="watermark"><img src="shared/prpath-logo.png" alt=""><span>PRPath</span></div>
+</div>
+
+<script>
+function init() {
+  var params = new URLSearchParams(window.location.search);
+  var exercise = params.get('exercise') || 'Bench Press';
+  var newWeight = params.get('new_weight') || '225 lbs';
+  var oldWeight = params.get('old_weight') || '215 lbs';
+  var improvement = params.get('improvement') || '+10 lbs';
+  var prType = (params.get('pr_type') || '1RM').toLowerCase().replace(/\s+/g, '_');
+  var reps = params.get('reps') || '';
+  var bg = params.get('background') || '#1C1C1E';
+  var title = params.get('title') || 'New PR';
+
+  document.body.style.background = bg;
+  document.querySelector('.template-container').style.background = bg;
+
+  var heroTitle = document.getElementById('heroTitle');
+  heroTitle.appendChild(document.createTextNode(title + ' '));
+  var flame = document.createElement('span');
+  flame.textContent = '🔥';
+  heroTitle.appendChild(flame);
+
+  var typeLabels = { '1rm': '1RM', 'max_weight': 'Max Weight', 'max_volume': 'Max Volume' };
+  var typeIcons = { '1rm': '🥇', 'max_weight': '💪', 'max_volume': '📊' };
+  var typeLabel = typeLabels[prType] || prType.toUpperCase();
+  var typeIcon = typeIcons[prType] || '⭐';
+
+  document.getElementById('heroSubtitle').textContent = 'Previous: ' + oldWeight + ' → ' + newWeight;
+
+  var cards = document.getElementById('prCards');
+  var card = document.createElement('div');
+  card.className = 'pr-card pr-type-' + prType;
+
+  var accent = document.createElement('div');
+  accent.className = 'accent-bar';
+  card.appendChild(accent);
+
+  var iconWrap = document.createElement('div');
+  iconWrap.className = 'pr-type-icon';
+  iconWrap.textContent = typeIcon;
+  card.appendChild(iconWrap);
+
+  var info = document.createElement('div');
+  info.className = 'pr-info';
+  var ex = document.createElement('div');
+  ex.className = 'pr-exercise';
+  ex.textContent = exercise;
+  info.appendChild(ex);
+  var typeLbl = document.createElement('div');
+  typeLbl.className = 'pr-type-label';
+  typeLbl.textContent = typeLabel;
+  info.appendChild(typeLbl);
+  card.appendChild(info);
+
+  var rightCol = document.createElement('div');
+  rightCol.style.display = 'flex';
+  rightCol.style.flexDirection = 'column';
+  rightCol.style.alignItems = 'flex-end';
+  rightCol.style.gap = '6px';
+
+  var val = document.createElement('div');
+  val.className = 'pr-value';
+  val.textContent = newWeight + (reps ? ' × ' + reps : '');
+  rightCol.appendChild(val);
+
+  var imp = document.createElement('div');
+  imp.className = 'pr-improvement';
+  imp.textContent = improvement;
+  rightCol.appendChild(imp);
+
+  card.appendChild(rightCol);
+  cards.appendChild(card);
+
+  var confettiColors = ['#FFCC00', '#FF6B35', '#34C759', '#00B0FF', '#AF52DE'];
+  var container = document.querySelector('.template-container');
+  for (var i = 0; i < 20; i++) {
+    var piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = (Math.random() * 100) + '%';
+    piece.style.top = (Math.random() * 30) + '%';
+    piece.style.background = confettiColors[i % confettiColors.length];
+    piece.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+    container.appendChild(piece);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
