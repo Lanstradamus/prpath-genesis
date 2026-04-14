@@ -1,0 +1,384 @@
+{
+  "generation": 1,
+  "spawned_at": "2026-04-13",
+  "spawn_mode": "evolution",
+  "parent_generation": 0,
+  "pool_counts": {
+    "exploit": 6,
+    "explore": 3,
+    "wildcards": 2,
+    "controls": 1
+  },
+  "species_counts": {
+    "PRPathCarousel": 12
+  },
+  "population": [
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_01_squat_180",
+        "gen000_06_bodymap_consistency"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "solid_dark",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 4,
+        "slide_duration_s": 3.0,
+        "content_format": "score_rank"
+      },
+      "content_genes": {
+        "exercise_topic": "squat",
+        "bodyweight_ref": "180",
+        "hook_framework": "pov_consistency",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "broad_and_niche_4",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_01_exploit",
+      "generation": 1,
+      "pool": "exploit",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_05_bodymap_breakup",
+        "gen000_01_squat_180"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "solid_dark",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 7,
+        "slide_duration_s": 3.0,
+        "content_format": "listicle_mistakes"
+      },
+      "content_genes": {
+        "bodyweight_ref": "200",
+        "exercise_topic": "squat",
+        "hook_framework": "pov_consistency",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "niche_5",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_02_exploit",
+      "generation": 1,
+      "pool": "exploit",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_05_bodymap_breakup",
+        "gen000_09_hipthrust_150"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "solid_dark",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 7,
+        "slide_duration_s": 3.0,
+        "content_format": "score_rank"
+      },
+      "content_genes": {
+        "bodyweight_ref": "150",
+        "exercise_topic": "hip_thrust",
+        "hook_framework": "whats_your_score",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "niche_5",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_03_exploit",
+      "generation": 1,
+      "pool": "exploit",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_06_bodymap_consistency",
+        "gen000_01_squat_180"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "solid_dark",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 4,
+        "slide_duration_s": 3.0,
+        "content_format": "score_rank"
+      },
+      "content_genes": {
+        "bodyweight_ref": "180",
+        "exercise_topic": "squat",
+        "hook_framework": "whats_your_score",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "niche_5",
+        "accent_color_gene": "orange",
+        "caption_tone": "educational"
+      },
+      "genome_id": "prpath_gen001_04_exploit",
+      "generation": 1,
+      "pool": "exploit",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_05_bodymap_breakup",
+        "gen000_09_hipthrust_150"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "solid_dark",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 4,
+        "slide_duration_s": 3.0,
+        "content_format": "body_map_progress"
+      },
+      "content_genes": {
+        "bodyweight_ref": "180",
+        "exercise_topic": "hip_thrust",
+        "hook_framework": "pov_consistency",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "niche_5",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_05_exploit",
+      "generation": 1,
+      "pool": "exploit",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_05_bodymap_breakup",
+        "gen000_01_squat_180"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "solid_dark",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 4,
+        "slide_duration_s": 3.0,
+        "content_format": "body_map_progress"
+      },
+      "content_genes": {
+        "bodyweight_ref": "180",
+        "exercise_topic": "squat",
+        "hook_framework": "x_reasons",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "niche_5",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_06_exploit",
+      "generation": 1,
+      "pool": "exploit",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_01_squat_180",
+        "gen000_05_bodymap_breakup"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "gradient",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 8,
+        "slide_duration_s": 3.0,
+        "content_format": "score_rank"
+      },
+      "content_genes": {
+        "exercise_topic": "squat",
+        "bodyweight_ref": "200",
+        "hook_framework": "pov_consistency",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "niche_5",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_07_explore",
+      "generation": 1,
+      "pool": "explore",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_09_hipthrust_150",
+        "gen000_05_bodymap_breakup"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "gradient",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 4,
+        "slide_duration_s": 3.0,
+        "content_format": "score_rank"
+      },
+      "content_genes": {
+        "exercise_topic": "hip_thrust",
+        "bodyweight_ref": "150",
+        "hook_framework": "whats_your_score",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "niche_5",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_08_explore",
+      "generation": 1,
+      "pool": "explore",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_09_hipthrust_150",
+        "gen000_05_bodymap_breakup"
+      ],
+      "lineage_type": "crossover",
+      "structural_genes": {
+        "background_style": "stock_photo_overlay",
+        "cta_style": "app_store_badge",
+        "posting_time": "midday_12pm",
+        "cover_style": "accent_word",
+        "slide_count": 7,
+        "slide_duration_s": 3.0,
+        "content_format": "score_rank"
+      },
+      "content_genes": {
+        "exercise_topic": "hip_thrust",
+        "bodyweight_ref": "150",
+        "hook_framework": "whats_your_score",
+        "gender_framing": "unisex",
+        "hashtag_strategy": "exercise_specific_3",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait"
+      },
+      "genome_id": "prpath_gen001_09_explore",
+      "generation": 1,
+      "pool": "explore",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [],
+      "lineage_type": "seed",
+      "structural_genes": {
+        "content_format": "score_rank",
+        "slide_count": 8,
+        "background_style": "stock_photo_overlay",
+        "cover_style": "dramatic_photo",
+        "cta_style": "swipe_to_find_out",
+        "slide_duration_s": 2.36,
+        "posting_time": "morning_6am"
+      },
+      "content_genes": {
+        "exercise_topic": "tricep_pushdown",
+        "bodyweight_ref": "200",
+        "gender_framing": "male",
+        "hook_framework": "x_reasons",
+        "listicle_topic": "bench_mistakes",
+        "accent_color_gene": "blue",
+        "caption_tone": "authentic",
+        "hashtag_strategy": "niche_5"
+      },
+      "genome_id": "prpath_gen001_10_wildcard",
+      "generation": 1,
+      "pool": "wildcard",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [],
+      "lineage_type": "seed",
+      "structural_genes": {
+        "content_format": "listicle_mistakes",
+        "slide_count": 7,
+        "background_style": "solid_dark",
+        "cover_style": "accent_word",
+        "cta_style": "minimal",
+        "slide_duration_s": 2.6,
+        "posting_time": "morning_6am"
+      },
+      "content_genes": {
+        "exercise_topic": "hip_thrust",
+        "bodyweight_ref": "150",
+        "gender_framing": "unisex",
+        "hook_framework": "x_mistakes",
+        "listicle_topic": "friend_stronger_reasons",
+        "accent_color_gene": "orange",
+        "caption_tone": "meme_casual",
+        "hashtag_strategy": "exercise_specific_3"
+      },
+      "genome_id": "prpath_gen001_11_wildcard",
+      "generation": 1,
+      "pool": "wildcard",
+      "fitness": null,
+      "status": "planned"
+    },
+    {
+      "template": "PRPathCarousel",
+      "parent_ids": [
+        "gen000_05_bodymap_breakup"
+      ],
+      "lineage_type": "clone",
+      "structural_genes": {
+        "content_format": "body_map_progress",
+        "slide_count": 4,
+        "background_style": "solid_dark",
+        "cover_style": "accent_word",
+        "cta_style": "app_store_badge",
+        "slide_duration_s": 3.0,
+        "posting_time": "midday_12pm"
+      },
+      "content_genes": {
+        "hook_framework": "pov_consistency",
+        "accent_color_gene": "orange",
+        "caption_tone": "comment_bait",
+        "hashtag_strategy": "niche_5",
+        "bodyweight_ref": "180",
+        "gender_framing": "unisex"
+      },
+      "props_overrides": {},
+      "genome_id": "prpath_gen001_12_control",
+      "generation": 1,
+      "pool": "control",
+      "fitness": null,
+      "status": "planned"
+    }
+  ]
+}

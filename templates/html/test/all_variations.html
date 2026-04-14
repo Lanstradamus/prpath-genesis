@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>All Template Variations — PRPath GENESIS</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    font-family: -apple-system, sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .header {
+    text-align: center;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    background: #0a0a0a;
+    z-index: 100;
+    border-bottom: 1px solid #222;
+  }
+  h1 { color: #FF6B35; font-size: 28px; margin-bottom: 4px; }
+  .subhead { color: #888; font-size: 14px; margin-bottom: 16px; }
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+  .nav-tab {
+    padding: 8px 16px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 20px;
+    color: #aaa;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .nav-tab:hover { background: #222; color: #fff; }
+  .nav-tab.active { background: #FF6B35; color: #000; border-color: #FF6B35; }
+  .section {
+    margin-top: 40px;
+    padding-top: 20px;
+  }
+  .section-title {
+    font-size: 24px;
+    color: #FF6B35;
+    margin-bottom: 4px;
+    padding-left: 12px;
+  }
+  .section-meta {
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 20px;
+    padding-left: 12px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 0 12px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+  }
+  .card-preview {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    position: relative;
+    background: #1C1C1E;
+  }
+  .card-preview iframe {
+    width: 1080px;
+    height: 1350px;
+    border: none;
+    transform: scale(0.296296);
+    transform-origin: top left;
+  }
+  .card-label {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #ddd;
+    background: #1a1a1a;
+    border-top: 1px solid #222;
+  }
+  .card-label .title {
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+  .card-label .params {
+    font-size: 11px;
+    color: #777;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>All Template Variations</h1>
+  <div class="subhead">Every config of every template. Click a tab to jump.</div>
+  <div class="nav-tabs">
+    <a href="#strength" class="nav-tab">Strength Score</a>
+    <a href="#tier" class="nav-tab">Tier Cards</a>
+    <a href="#bodymap" class="nav-tab">Body Maps</a>
+    <a href="#cover" class="nav-tab">Cover Slides</a>
+    <a href="#cta" class="nav-tab">CTA Slides</a>
+    <a href="#pr" class="nav-tab">PR Celebration</a>
+    <a href="#history" class="nav-tab">Workout History</a>
+    <a href="#balance" class="nav-tab">Muscle Balance</a>
+  </div>
+</div>
+
+<!-- STRENGTH SCORE -->
+<div id="strength" class="section">
+  <div class="section-title">Strength Score Gauge</div>
+  <div class="section-meta">Same template, different scores + exercises + tiers. 6 variations.</div>
+  <div class="grid" id="strength-grid"></div>
+</div>
+
+<!-- TIER CARDS -->
+<div id="tier" class="section">
+  <div class="section-title">Tier Cards</div>
+  <div class="section-meta">Every tier level. 6 variations (Beginner → World Class).</div>
+  <div class="grid" id="tier-grid"></div>
+</div>
+
+<!-- BODY MAPS -->
+<div id="bodymap" class="section">
+  <div class="section-title">Muscle Body Maps</div>
+  <div class="section-meta">Different muscle activations + views (front/back). 8 variations.</div>
+  <div class="grid" id="bodymap-grid"></div>
+</div>
+
+<!-- COVER SLIDES -->
+<div id="cover" class="section">
+  <div class="section-title">Cover Slides</div>
+  <div class="section-meta">Different hook texts for different exercises/themes. 8 variations.</div>
+  <div class="grid" id="cover-grid"></div>
+</div>
+
+<!-- CTA SLIDES -->
+<div id="cta" class="section">
+  <div class="section-title">CTA Slides</div>
+  <div class="section-meta">Different taglines. 5 variations.</div>
+  <div class="grid" id="cta-grid"></div>
+</div>
+
+<!-- PR CELEBRATION -->
+<div id="pr" class="section">
+  <div class="section-title">PR Celebration</div>
+  <div class="section-meta">Different PR achievements. 6 variations.</div>
+  <div class="grid" id="pr-grid"></div>
+</div>
+
+<!-- WORKOUT HISTORY -->
+<div id="history" class="section">
+  <div class="section-title">Workout History</div>
+  <div class="section-meta">Timeline view (currently just one configuration).</div>
+  <div class="grid" id="history-grid"></div>
+</div>
+
+<!-- MUSCLE BALANCE -->
+<div id="balance" class="section">
+  <div class="section-title">Muscle Balance Score</div>
+  <div class="section-meta">Different weakness scenarios. 4 variations.</div>
+  <div class="grid" id="balance-grid"></div>
+</div>
+
+<script>
+function addCard(gridId, title, params, url) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-preview"><iframe src="${url}" loading="lazy"></iframe></div>
+    <div class="card-label">
+      <div class="title">${title}</div>
+      <div class="params">${params}</div>
+    </div>
+  `;
+  document.getElementById(gridId).appendChild(card);
+}
+
+// ─── Strength Score variations ──
+const exercises = [
+  { name: "Squat", score: 67, tier: "Advanced", color: "#34C759", sub: "Above average", wt: "306 lbs", mult: "1.7x" },
+  { name: "Bench Press", score: 76, tier: "Elite", color: "#00B0FF", sub: "Top 10%", wt: "270 lbs", mult: "1.5x" },
+  { name: "Deadlift", score: 85, tier: "World Class", color: "#AF52DE", sub: "Top 1%", wt: "450 lbs", mult: "2.5x" },
+  { name: "Pull-Up", score: 42, tier: "Intermediate", color: "#FFCC00", sub: "Solid progress", wt: "8 reps", mult: "1.0x" },
+  { name: "Overhead Press", score: 25, tier: "Novice", color: "#FF9500", sub: "Building foundation", wt: "90 lbs", mult: "0.5x" },
+  { name: "Hip Thrust", score: 10, tier: "Beginner", color: "#FF3B30", sub: "Just starting out", wt: "90 lbs", mult: "0.5x" },
+];
+exercises.forEach(e => {
+  const url = `../strength_score.html?score=${e.score}&exercise=${encodeURIComponent(e.name)}&tier=${encodeURIComponent(e.tier)}&tier_subtitle=${encodeURIComponent(e.sub)}&bodyweight=180%20lbs&weight_lifted=${encodeURIComponent(e.wt)}&multiplier=${e.mult}`;
+  addCard('strength-grid', `${e.name} — ${e.tier}`, `score=${e.score}, ${e.mult}`, url);
+});
+
+// ─── Tier Cards ──
+const tiers = [
+  { tier: "Beginner",     score: 10, color: "#FF3B30", sub: "Just starting out",     mult: "0.5x bodyweight",  wt: "90 lbs / 180 lbs BW" },
+  { tier: "Novice",       score: 25, color: "#FF9500", sub: "Building foundation",   mult: "0.75x bodyweight", wt: "135 lbs / 180 lbs BW" },
+  { tier: "Intermediate", score: 42, color: "#FFCC00", sub: "Solid progress",        mult: "1.0x bodyweight",  wt: "180 lbs / 180 lbs BW" },
+  { tier: "Advanced",     score: 59, color: "#34C759", sub: "Above average",         mult: "1.25x bodyweight", wt: "225 lbs / 180 lbs BW" },
+  { tier: "Elite",        score: 76, color: "#00B0FF", sub: "Top 10%",                mult: "1.5x bodyweight",  wt: "270 lbs / 180 lbs BW" },
+  { tier: "World Class",  score: 93, color: "#AF52DE", sub: "Top 1%",                 mult: "2.0x bodyweight",  wt: "360 lbs / 180 lbs BW" },
+];
+tiers.forEach(t => {
+  const url = `../tier_card.html?tier=${encodeURIComponent(t.tier)}&score=${t.score}&exercise=Bench%20Press&multiplier=${encodeURIComponent(t.mult)}&weight_example=${encodeURIComponent(t.wt)}&tier_subtitle=${encodeURIComponent(t.sub)}&gauge_color=${encodeURIComponent(t.color)}&bodyweight_ref=180%20lbs&show_gauge=true`;
+  addCard('tier-grid', `${t.tier} (${t.score})`, `${t.mult}, ${t.wt}`, url);
+});
+
+// ─── Body Maps ──
+const bodymaps = [
+  { title: "Push Day", params: "chest_color=%2300B0FF&chest_intensity=0.9&shoulders_color=%2300B0FF&shoulders_intensity=0.7&biceps_color=%23FF9500&biceps_intensity=0.5", view: "front", desc: "Chest + shoulders lit" },
+  { title: "Pull Day", params: "lats_color=%2300B0FF&lats_intensity=0.9&biceps_color=%23FF9500&biceps_intensity=0.7&upper_back_color=%23AF52DE&upper_back_intensity=0.8", view: "back", desc: "Back muscles lit" },
+  { title: "Leg Day", params: "quads_color=%23AF52DE&quads_intensity=0.9&glutes_color=%23AF52DE&glutes_intensity=0.9&calves_color=%23FFCC00&calves_intensity=0.6", view: "front", desc: "Legs + glutes lit" },
+  { title: "Full Body", params: "chest_color=%2300B0FF&chest_intensity=0.8&shoulders_color=%2300B0FF&shoulders_intensity=0.8&biceps_color=%23FF9500&biceps_intensity=0.7&abs_color=%2334C759&abs_intensity=0.6&quads_color=%23AF52DE&quads_intensity=0.9", view: "front", desc: "Everything lit" },
+  { title: "Start", params: "chest_color=%23FF3B30&chest_intensity=0.3&biceps_color=%23FF9500&biceps_intensity=0.2", view: "front", desc: "Beginner state (minimal)" },
+  { title: "Now", params: "chest_color=%2300B0FF&chest_intensity=0.9&shoulders_color=%2300B0FF&shoulders_intensity=0.8&biceps_color=%23FF9500&biceps_intensity=0.7&abs_color=%2334C759&abs_intensity=0.6&quads_color=%23AF52DE&quads_intensity=0.9&calves_color=%23FFCC00&calves_intensity=0.5", view: "front", desc: "Transformed state" },
+  { title: "Weak Legs", params: "chest_color=%2300B0FF&chest_intensity=0.8&biceps_color=%23FF9500&biceps_intensity=0.7&shoulders_color=%2300B0FF&shoulders_intensity=0.7", view: "front", desc: "Skipping legs (nothing lit on legs)" },
+  { title: "Back View", params: "lats_color=%2300B0FF&lats_intensity=0.9&upper_back_color=%23AF52DE&upper_back_intensity=0.8&glutes_color=%23AF52DE&glutes_intensity=0.9&traps_color=%2300B0FF&traps_intensity=0.7", view: "back", desc: "Full back lit up" },
+];
+bodymaps.forEach(b => {
+  const url = `../muscle_body_map.html?view=${b.view}&title=${encodeURIComponent(b.title)}&${b.params}`;
+  addCard('bodymap-grid', `${b.title} (${b.view})`, b.desc, url);
+});
+
+// ─── Cover Slides ──
+const covers = [
+  { hook: "What's your SQUAT SCORE?", accent: "SQUAT" },
+  { hook: "What's your BENCH SCORE?", accent: "BENCH" },
+  { hook: "What's your DEADLIFT SCORE?", accent: "DEADLIFT" },
+  { hook: "Are you actually ELITE?", accent: "ELITE" },
+  { hook: "Where do you RANK?", accent: "RANK" },
+  { hook: "Only 1% are WORLD CLASS", accent: "WORLD CLASS" },
+  { hook: "5 REASONS you're stuck", accent: "REASONS" },
+  { hook: "Do you even TRAIN legs?", accent: "TRAIN" },
+];
+covers.forEach(c => {
+  const url = `../cover_slide.html?hook_text=${encodeURIComponent(c.hook)}&accent_word=${encodeURIComponent(c.accent)}&show_gauge_preview=true`;
+  addCard('cover-grid', c.hook, `accent: ${c.accent}`, url);
+});
+
+// ─── CTA Slides ──
+const ctas = [
+  { tagline: "Track your strength score" },
+  { tagline: "See where you rank" },
+  { tagline: "Know your numbers" },
+  { tagline: "Stop guessing. Start tracking." },
+  { tagline: "Your gym report card" },
+];
+ctas.forEach(c => {
+  const url = `../cta_slide.html?tagline=${encodeURIComponent(c.tagline)}&show_app_store_badge=true`;
+  addCard('cta-grid', c.tagline, "", url);
+});
+
+// ─── PR Celebration ──
+const prs = [
+  { ex: "Bench Press", nw: "225 lbs", ow: "215 lbs", imp: "+10 lbs", type: "1RM" },
+  { ex: "Squat", nw: "315 lbs", ow: "295 lbs", imp: "+20 lbs", type: "1RM" },
+  { ex: "Deadlift", nw: "405 lbs", ow: "385 lbs", imp: "+20 lbs", type: "1RM" },
+  { ex: "Hip Thrust", nw: "405 lbs", ow: "365 lbs", imp: "+40 lbs", type: "Max Weight" },
+  { ex: "Pull-Up", nw: "15 reps", ow: "12 reps", imp: "+3 reps", type: "Max Volume" },
+  { ex: "Overhead Press", nw: "155 lbs", ow: "145 lbs", imp: "+10 lbs", type: "1RM" },
+];
+prs.forEach(p => {
+  const url = `../pr_celebration.html?exercise=${encodeURIComponent(p.ex)}&new_weight=${encodeURIComponent(p.nw)}&old_weight=${encodeURIComponent(p.ow)}&improvement=${encodeURIComponent(p.imp)}&pr_type=${encodeURIComponent(p.type)}`;
+  addCard('pr-grid', `${p.ex} — ${p.imp}`, `${p.ow} → ${p.nw} (${p.type})`, url);
+});
+
+// ─── Workout History ──
+addCard('history-grid', "Default view", "Timeline with Workouts/Nutrition tabs", "../workout_history.html");
+
+// ─── Muscle Balance ──
+const balances = [
+  { focus: "Weak Legs", params: "" },  // default
+  { focus: "Weak Back", params: "?chest=Elite%2078&back=Novice%2022&shoulders=Advanced%2065&arms=Advanced%2062&legs=Elite%2075&core=Advanced%2055&weakest=Back" },
+  { focus: "Weak Arms", params: "?chest=Elite%2078&back=Advanced%2065&shoulders=Elite%2070&arms=Novice%2018&legs=Advanced%2060&core=Advanced%2055&weakest=Arms" },
+  { focus: "Balanced", params: "?chest=Advanced%2068&back=Advanced%2065&shoulders=Advanced%2067&arms=Advanced%2066&legs=Advanced%2064&core=Advanced%2062&weakest=Core" },
+];
+balances.forEach(b => {
+  addCard('balance-grid', b.focus, "", `../muscle_balance_score.html${b.params}`);
+});
+
+console.log('All variations loaded');
+</script>
+
+</body>
+</html>

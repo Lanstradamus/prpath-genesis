@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mac Claude Template Review — All 5 Templates</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    font-family: -apple-system, sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 {
+    color: #FF6B35;
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .meta {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .viewer {
+    width: 540px;
+    height: 675px;
+    border: 3px solid #333;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    background: #1C1C1E;
+    box-shadow: 0 20px 60px rgba(255, 107, 53, 0.1);
+  }
+  iframe {
+    width: 1080px;
+    height: 1350px;
+    border: none;
+    transform: scale(0.5);
+    transform-origin: top left;
+  }
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    align-items: center;
+  }
+  button {
+    background: #FF6B35;
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  button:hover { transform: translateY(-2px); }
+  button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .counter {
+    font-size: 14px;
+    color: #888;
+    min-width: 50px;
+    text-align: center;
+  }
+  .template-info {
+    margin-top: 20px;
+    max-width: 540px;
+    text-align: center;
+  }
+  .template-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .template-desc {
+    font-size: 14px;
+    color: #aaa;
+    line-height: 1.5;
+  }
+  .url-bar {
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: #222;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #666;
+    max-width: 540px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    max-width: 540px;
+  }
+  .thumb {
+    flex: 1;
+    aspect-ratio: 4 / 5;
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: #1C1C1E;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    padding: 4px;
+    transition: all 0.2s;
+  }
+  .thumb.active {
+    border-color: #FF6B35;
+    color: #FF6B35;
+    background: #2a1410;
+  }
+  .thumb:hover:not(.active) {
+    border-color: #666;
+  }
+  .verdict {
+    margin-top: 16px;
+    padding: 12px 24px;
+    background: #1a1a1a;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #aaa;
+  }
+  .verdict .status { font-weight: 700; margin-right: 6px; }
+  .ok { color: #34C759; }
+  .issue { color: #FF9500; }
+</style>
+</head>
+<body>
+
+<h1>Mac Claude Template Review</h1>
+<div class="meta">Review the 5 Wave 2 templates at real proportions (scaled to fit). Use arrows or thumbnails below.</div>
+
+<div class="viewer">
+  <iframe id="previewFrame" src=""></iframe>
+</div>
+
+<div class="controls">
+  <button id="prevBtn">← Prev</button>
+  <span class="counter"><span id="counter">1</span> / 5</span>
+  <button id="nextBtn">Next →</button>
+</div>
+
+<div class="template-info">
+  <div class="template-name" id="templateName"></div>
+  <div class="template-desc" id="templateDesc"></div>
+  <div class="url-bar" id="urlBar"></div>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<div class="thumbs">
+  <div class="thumb" data-idx="0">Strength<br>Score</div>
+  <div class="thumb" data-idx="1">Tier<br>Card</div>
+  <div class="thumb" data-idx="2">Body<br>Map</div>
+  <div class="thumb" data-idx="3">Cover<br>Slide</div>
+  <div class="thumb" data-idx="4">CTA<br>Slide</div>
+  <div class="thumb" data-idx="5">PR<br>Celebration</div>
+  <div class="thumb" data-idx="6">Workout<br>History</div>
+  <div class="thumb" data-idx="7">Muscle<br>Balance</div>
+</div>
+
+<script>
+const templates = [
+  {
+    name: "Strength Score Gauge",
+    url: "../strength_score.html?score=67&exercise=Squat&tier=Advanced&tier_subtitle=Above%20average&bodyweight=180%20lbs&weight_lifted=306%20lbs&multiplier=1.7x",
+    desc: "Main Strength Score screen — circular gauge with score, tier badge, exercise name, stats row",
+    verdict: "ok",
+    note: "Used in Score/Rank carousels. Matches real app."
+  },
+  {
+    name: "Tier Card",
+    url: "../tier_card.html?tier=Elite&score=76&exercise=Bench+Press&multiplier=1.5x+bodyweight&weight_example=270+lbs+/+122+kg&tier_subtitle=Top+10%25&gauge_color=%2300B0FF&bodyweight_ref=180+lbs&show_gauge=true",
+    desc: "Single tier slide used in Score/Rank carousels — one card per tier (Beginner through World Class)",
+    verdict: "ok",
+    note: "Used 4-6x per Score/Rank carousel for tier progression."
+  },
+  {
+    name: "Muscle Body Map",
+    url: "../muscle_body_map.html?view=front&title=Your+Progress&chest_color=%2300B0FF&chest_intensity=0.9&shoulders_color=%2300B0FF&shoulders_intensity=0.7&biceps_color=%23FF9500&biceps_intensity=0.6&abs_color=%2334C759&abs_intensity=0.5&quads_color=%23AF52DE&quads_intensity=0.9",
+    desc: "Anatomical body with color-coded muscle groups. Used in 'Start vs Now' body map carousels (Stronger's 41.7M format)",
+    verdict: "ok",
+    note: "SVG muscle groups, infinitely customizable colors/intensities."
+  },
+  {
+    name: "Cover Slide",
+    url: "../cover_slide.html?hook_text=What%27s%20your%20SQUAT%20SCORE%3F&accent_word=SQUAT&exercise=Squat&show_gauge_preview=true",
+    desc: "First slide of every carousel — the scroll-stopper with bold hook text",
+    verdict: "ok",
+    note: "Accent word in orange. PRPath logo top-corner."
+  },
+  {
+    name: "CTA Slide",
+    url: "../cta_slide.html?tagline=Track+your+strength+score&show_app_store_badge=true",
+    desc: "Last slide of every carousel — PRPath logo + tagline + App Store badge + tier color dots",
+    verdict: "ok",
+    note: "Clean conversion slide. Works for all carousel formats."
+  },
+  {
+    name: "PR Celebration (NEW)",
+    url: "../pr_celebration.html?exercise=Bench+Press&new_weight=225+lbs&old_weight=215+lbs&improvement=%2B10+lbs&pr_type=1RM",
+    desc: "Celebration screen when a new personal record is hit. Matches WorkoutCompletionView. Unlocks PR content formats.",
+    verdict: "ok",
+    note: "Trophy + 'New PR 🔥' + confetti + weight comparison. Highly shareable."
+  },
+  {
+    name: "Workout History (NEW)",
+    url: "../workout_history.html",
+    desc: "History tab timeline. Matches HistoryContainerView exactly. Unlocks 'POV: 6 months consistency' content.",
+    verdict: "ok",
+    note: "Segmented Workouts/Nutrition tabs, timeline cards with stat pills."
+  },
+  {
+    name: "Muscle Balance Score (NEW)",
+    url: "../muscle_balance_score.html",
+    desc: "Numeric scores per muscle group with tier names. Weakest muscle flagged orange. Unlocks 'Do you even train legs?' viral format.",
+    verdict: "ok",
+    note: "THE gotcha moment. 'Legs: Novice 22 ⚠ WEAKEST' = viral content fuel."
+  },
+];
+
+let current = 0;
+
+function showTemplate(idx) {
+  current = Math.max(0, Math.min(templates.length - 1, idx));
+  const t = templates[current];
+  document.getElementById('previewFrame').src = t.url;
+  document.getElementById('templateName').textContent = t.name;
+  document.getElementById('templateDesc').textContent = t.desc;
+  document.getElementById('urlBar').textContent = t.url.replace('../', '');
+  document.getElementById('verdict').innerHTML =
+    `<span class="status ${t.verdict}">${t.verdict === 'ok' ? '✓ WORKING' : '⚠ NEEDS FIX'}</span> ${t.note}`;
+  document.getElementById('counter').textContent = current + 1;
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === templates.length - 1;
+
+  document.querySelectorAll('.thumb').forEach((el, i) => {
+    el.classList.toggle('active', i === current);
+  });
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => showTemplate(current - 1));
+document.getElementById('nextBtn').addEventListener('click', () => showTemplate(current + 1));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') showTemplate(current - 1);
+  if (e.key === 'ArrowRight') showTemplate(current + 1);
+});
+document.querySelectorAll('.thumb').forEach((el) => {
+  el.addEventListener('click', () => showTemplate(parseInt(el.dataset.idx)));
+});
+
+// Update counter total
+document.querySelector('.counter').innerHTML = '<span id="counter">1</span> / ' + templates.length;
+
+showTemplate(0);
+</script>
+
+</body>
+</html>

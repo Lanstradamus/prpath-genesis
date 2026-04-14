@@ -1,0 +1,14 @@
+{
+  "gen000_01_squat_180":       {"views_7d": 85000, "saves": 1200, "comments": 450, "shares": 320, "likes": 8500, "profile_views": 120},
+  "gen000_02_bench_180":       {"views_7d": 42000, "saves": 380, "comments": 180, "shares": 90, "likes": 4200, "profile_views": 60},
+  "gen000_03_deadlift_180":    {"views_7d": 38000, "saves": 420, "comments": 210, "shares": 110, "likes": 3900, "profile_views": 55},
+  "gen000_04_ohp_180":         {"views_7d": 12000, "saves": 90, "comments": 45, "shares": 20, "likes": 1100, "profile_views": 15},
+  "gen000_05_bodymap_breakup": {"views_7d": 120000, "saves": 2400, "comments": 680, "shares": 890, "likes": 15000, "profile_views": 280},
+  "gen000_06_bodymap_consistency": {"views_7d": 95000, "saves": 1800, "comments": 520, "shares": 640, "likes": 11000, "profile_views": 210},
+  "gen000_07_squat_150":       {"views_7d": 72000, "saves": 950, "comments": 380, "shares": 280, "likes": 7200, "profile_views": 95},
+  "gen000_08_bench_150":       {"views_7d": 28000, "saves": 210, "comments": 95, "shares": 45, "likes": 2800, "profile_views": 35},
+  "gen000_09_hipthrust_150":   {"views_7d": 110000, "saves": 1600, "comments": 580, "shares": 420, "likes": 12500, "profile_views": 180},
+  "gen000_10_pullup_180":      {"views_7d": 18000, "saves": 140, "comments": 65, "shares": 30, "likes": 1800, "profile_views": 22},
+  "gen000_11_row_180":         {"views_7d": 8500, "saves": 60, "comments": 28, "shares": 12, "likes": 850, "profile_views": 8},
+  "gen000_12_frontsquat_200":  {"views_7d": 5200, "saves": 35, "comments": 15, "shares": 6, "likes": 480, "profile_views": 4}
+}

@@ -1,0 +1,29 @@
+# Secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Generated content (large + regeneratable)
+slides/
+!slides/.gitkeep
+
+# Video output files (regeneratable)
+*.mp4
+
+# Test output
+test_output/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

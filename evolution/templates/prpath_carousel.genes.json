@@ -1,0 +1,115 @@
+{
+  "template": "PRPathCarousel",
+  "description": "PRPath carousel genome for GENESIS evolution",
+  "structural_genes": {
+    "content_format": {
+      "type": "enum",
+      "values": [
+        "score_rank",
+        "body_map_progress",
+        "listicle_mistakes",
+        "dramatic_discovery",
+        "report_card",
+        "pov_consistency",
+        "nutrition_swaps",
+        "wildcard"
+      ],
+      "description": "Top-level carousel format"
+    },
+    "slide_count": {
+      "type": "int",
+      "range": [4, 8],
+      "description": "Total slides including cover + CTA"
+    },
+    "background_style": {
+      "type": "enum",
+      "values": ["solid_dark", "stock_photo_overlay", "gradient"],
+      "description": "Slide background treatment"
+    },
+    "cover_style": {
+      "type": "enum",
+      "values": ["bold_hook", "accent_word", "mini_gauge_preview", "dramatic_photo"],
+      "description": "How the cover slide looks"
+    },
+    "cta_style": {
+      "type": "enum",
+      "values": ["app_store_badge", "swipe_to_find_out", "comment_bait", "minimal"],
+      "description": "CTA slide treatment"
+    },
+    "slide_duration_s": {
+      "type": "float",
+      "range": [2.0, 4.0],
+      "description": "Video slide duration (for Reels/Shorts)"
+    },
+    "posting_time": {
+      "type": "enum",
+      "values": ["morning_6am", "morning_9am", "midday_12pm", "afternoon_3pm", "evening_5pm", "evening_8pm"],
+      "description": "Scheduled posting time slot"
+    }
+  },
+  "content_genes": {
+    "exercise_topic": {
+      "type": "enum",
+      "values": [
+        "squat", "bench_press", "deadlift", "overhead_press",
+        "barbell_row", "pull_up", "hip_thrust", "leg_press",
+        "lat_pulldown", "bicep_curl", "incline_bench",
+        "romanian_deadlift", "front_squat", "dumbbell_press", "tricep_pushdown"
+      ],
+      "description": "Primary exercise focus (for score_rank format)"
+    },
+    "bodyweight_ref": {
+      "type": "enum",
+      "values": ["150", "180", "200"],
+      "description": "Reference bodyweight (lbs) for strength standards"
+    },
+    "gender_framing": {
+      "type": "enum",
+      "values": ["male", "female", "unisex"],
+      "description": "Gendered standards framing"
+    },
+    "hook_framework": {
+      "type": "enum",
+      "values": [
+        "whats_your_score",
+        "am_i_elite",
+        "only_1_percent",
+        "most_people_are_stuck",
+        "x_reasons",
+        "x_mistakes",
+        "comment_your_weight",
+        "pov_consistency",
+        "do_you_even",
+        "food_swaps"
+      ],
+      "description": "Opening hook framework"
+    },
+    "listicle_topic": {
+      "type": "enum",
+      "values": [
+        "stuck_at_same_weight",
+        "getting_stronger_signs",
+        "bench_mistakes",
+        "friend_stronger_reasons",
+        "strong_people_track",
+        "beginners_quit_reasons"
+      ],
+      "description": "Listicle topic (for listicle format)"
+    },
+    "accent_color_gene": {
+      "type": "enum",
+      "values": ["orange", "red", "green", "blue", "purple", "yellow"],
+      "description": "Accent/highlight color on slides"
+    },
+    "caption_tone": {
+      "type": "enum",
+      "values": ["comment_bait", "educational", "meme_casual", "dramatic", "authentic"],
+      "description": "Caption tone for all platforms"
+    },
+    "hashtag_strategy": {
+      "type": "enum",
+      "values": ["niche_5", "broad_and_niche_4", "exercise_specific_3", "minimal_3"],
+      "description": "Hashtag mix approach"
+    }
+  }
+}

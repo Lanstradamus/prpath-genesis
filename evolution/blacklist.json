@@ -1,0 +1,11 @@
+{
+  "updated": "2026-04-13",
+  "rules": {
+    "kill_after_exposures": 3,
+    "kill_after_bottom_percentile": 0.25,
+    "kill_after_consecutive_gens": 3
+  },
+  "banned": {
+    "prpath_carousel": {}
+  }
+}

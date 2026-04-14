@@ -1,0 +1,295 @@
+{
+  "_meta": {
+    "source": "strengthlevel.com standards, adapted for PRPath scoring",
+    "bodyweight_refs": ["150", "180", "200"],
+    "unit": "lbs",
+    "note": "multiplier = weight_lifted / bodyweight. Scores map to PRPath tiers: Beginner 0-16, Novice 17-33, Intermediate 34-50, Advanced 51-67, Elite 68-84, World Class 85-100"
+  },
+  "exercises": {
+    "squat": {
+      "display_name": "Squat",
+      "muscle_group": "Legs",
+      "primary_muscles": ["quads", "glutes"],
+      "secondary_muscles": ["core", "calves"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.75x" },
+        "novice":       { "score": 25, "multiplier": "1.0x" },
+        "intermediate": { "score": 42, "multiplier": "1.25x" },
+        "advanced":     { "score": 59, "multiplier": "1.5x" },
+        "elite":        { "score": 76, "multiplier": "2.0x" },
+        "worldclass":   { "score": 93, "multiplier": "2.5x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "113 lbs", "novice": "150 lbs", "intermediate": "188 lbs", "advanced": "225 lbs", "elite": "300 lbs", "worldclass": "375 lbs" },
+        "180": { "beginner": "135 lbs", "novice": "180 lbs", "intermediate": "225 lbs", "advanced": "270 lbs", "elite": "360 lbs", "worldclass": "450 lbs" },
+        "200": { "beginner": "150 lbs", "novice": "200 lbs", "intermediate": "250 lbs", "advanced": "300 lbs", "elite": "400 lbs", "worldclass": "500 lbs" }
+      }
+    },
+    "bench_press": {
+      "display_name": "Bench Press",
+      "muscle_group": "Chest",
+      "primary_muscles": ["chest", "shoulders"],
+      "secondary_muscles": ["biceps"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.5x" },
+        "novice":       { "score": 25, "multiplier": "0.75x" },
+        "intermediate": { "score": 42, "multiplier": "1.0x" },
+        "advanced":     { "score": 59, "multiplier": "1.25x" },
+        "elite":        { "score": 76, "multiplier": "1.5x" },
+        "worldclass":   { "score": 93, "multiplier": "2.0x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "75 lbs", "novice": "113 lbs", "intermediate": "150 lbs", "advanced": "188 lbs", "elite": "225 lbs", "worldclass": "300 lbs" },
+        "180": { "beginner": "90 lbs", "novice": "135 lbs", "intermediate": "180 lbs", "advanced": "225 lbs", "elite": "270 lbs", "worldclass": "360 lbs" },
+        "200": { "beginner": "100 lbs", "novice": "150 lbs", "intermediate": "200 lbs", "advanced": "250 lbs", "elite": "300 lbs", "worldclass": "400 lbs" }
+      }
+    },
+    "deadlift": {
+      "display_name": "Deadlift",
+      "muscle_group": "Back",
+      "primary_muscles": ["lats", "glutes", "upper_back"],
+      "secondary_muscles": ["quads", "core"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "1.0x" },
+        "novice":       { "score": 25, "multiplier": "1.25x" },
+        "intermediate": { "score": 42, "multiplier": "1.5x" },
+        "advanced":     { "score": 59, "multiplier": "2.0x" },
+        "elite":        { "score": 76, "multiplier": "2.5x" },
+        "worldclass":   { "score": 93, "multiplier": "3.0x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "150 lbs", "novice": "188 lbs", "intermediate": "225 lbs", "advanced": "300 lbs", "elite": "375 lbs", "worldclass": "450 lbs" },
+        "180": { "beginner": "180 lbs", "novice": "225 lbs", "intermediate": "270 lbs", "advanced": "360 lbs", "elite": "450 lbs", "worldclass": "540 lbs" },
+        "200": { "beginner": "200 lbs", "novice": "250 lbs", "intermediate": "300 lbs", "advanced": "400 lbs", "elite": "500 lbs", "worldclass": "600 lbs" }
+      }
+    },
+    "overhead_press": {
+      "display_name": "Overhead Press",
+      "muscle_group": "Shoulders",
+      "primary_muscles": ["shoulders"],
+      "secondary_muscles": ["chest", "biceps", "core"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.35x" },
+        "novice":       { "score": 25, "multiplier": "0.5x" },
+        "intermediate": { "score": 42, "multiplier": "0.65x" },
+        "advanced":     { "score": 59, "multiplier": "0.85x" },
+        "elite":        { "score": 76, "multiplier": "1.1x" },
+        "worldclass":   { "score": 93, "multiplier": "1.4x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "53 lbs", "novice": "75 lbs", "intermediate": "98 lbs", "advanced": "128 lbs", "elite": "165 lbs", "worldclass": "210 lbs" },
+        "180": { "beginner": "63 lbs", "novice": "90 lbs", "intermediate": "117 lbs", "advanced": "153 lbs", "elite": "198 lbs", "worldclass": "252 lbs" },
+        "200": { "beginner": "70 lbs", "novice": "100 lbs", "intermediate": "130 lbs", "advanced": "170 lbs", "elite": "220 lbs", "worldclass": "280 lbs" }
+      }
+    },
+    "barbell_row": {
+      "display_name": "Barbell Row",
+      "muscle_group": "Back",
+      "primary_muscles": ["lats", "upper_back"],
+      "secondary_muscles": ["biceps", "core"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.5x" },
+        "novice":       { "score": 25, "multiplier": "0.7x" },
+        "intermediate": { "score": 42, "multiplier": "0.9x" },
+        "advanced":     { "score": 59, "multiplier": "1.15x" },
+        "elite":        { "score": 76, "multiplier": "1.5x" },
+        "worldclass":   { "score": 93, "multiplier": "1.8x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "75 lbs", "novice": "105 lbs", "intermediate": "135 lbs", "advanced": "173 lbs", "elite": "225 lbs", "worldclass": "270 lbs" },
+        "180": { "beginner": "90 lbs", "novice": "126 lbs", "intermediate": "162 lbs", "advanced": "207 lbs", "elite": "270 lbs", "worldclass": "324 lbs" },
+        "200": { "beginner": "100 lbs", "novice": "140 lbs", "intermediate": "180 lbs", "advanced": "230 lbs", "elite": "300 lbs", "worldclass": "360 lbs" }
+      }
+    },
+    "pull_up": {
+      "display_name": "Pull-Up",
+      "muscle_group": "Back",
+      "primary_muscles": ["lats", "biceps"],
+      "secondary_muscles": ["upper_back", "core"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0 reps" },
+        "novice":       { "score": 25, "multiplier": "3 reps" },
+        "intermediate": { "score": 42, "multiplier": "8 reps" },
+        "advanced":     { "score": 59, "multiplier": "15 reps" },
+        "elite":        { "score": 76, "multiplier": "20+ reps" },
+        "worldclass":   { "score": 93, "multiplier": "+90 lbs x5" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "0 reps", "novice": "3 reps", "intermediate": "8 reps", "advanced": "15 reps", "elite": "20+ reps", "worldclass": "+90 lbs x5" },
+        "180": { "beginner": "0 reps", "novice": "3 reps", "intermediate": "8 reps", "advanced": "15 reps", "elite": "20+ reps", "worldclass": "+90 lbs x5" },
+        "200": { "beginner": "0 reps", "novice": "3 reps", "intermediate": "8 reps", "advanced": "15 reps", "elite": "20+ reps", "worldclass": "+90 lbs x5" }
+      }
+    },
+    "hip_thrust": {
+      "display_name": "Hip Thrust",
+      "muscle_group": "Glutes",
+      "primary_muscles": ["glutes"],
+      "secondary_muscles": ["quads", "core"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.5x" },
+        "novice":       { "score": 25, "multiplier": "1.0x" },
+        "intermediate": { "score": 42, "multiplier": "1.5x" },
+        "advanced":     { "score": 59, "multiplier": "2.0x" },
+        "elite":        { "score": 76, "multiplier": "2.5x" },
+        "worldclass":   { "score": 93, "multiplier": "3.0x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "75 lbs", "novice": "150 lbs", "intermediate": "225 lbs", "advanced": "300 lbs", "elite": "375 lbs", "worldclass": "450 lbs" },
+        "180": { "beginner": "90 lbs", "novice": "180 lbs", "intermediate": "270 lbs", "advanced": "360 lbs", "elite": "450 lbs", "worldclass": "540 lbs" },
+        "200": { "beginner": "100 lbs", "novice": "200 lbs", "intermediate": "300 lbs", "advanced": "400 lbs", "elite": "500 lbs", "worldclass": "600 lbs" }
+      }
+    },
+    "leg_press": {
+      "display_name": "Leg Press",
+      "muscle_group": "Legs",
+      "primary_muscles": ["quads", "glutes"],
+      "secondary_muscles": ["calves"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "1.5x" },
+        "novice":       { "score": 25, "multiplier": "2.0x" },
+        "intermediate": { "score": 42, "multiplier": "2.5x" },
+        "advanced":     { "score": 59, "multiplier": "3.0x" },
+        "elite":        { "score": 76, "multiplier": "4.0x" },
+        "worldclass":   { "score": 93, "multiplier": "5.0x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "225 lbs", "novice": "300 lbs", "intermediate": "375 lbs", "advanced": "450 lbs", "elite": "600 lbs", "worldclass": "750 lbs" },
+        "180": { "beginner": "270 lbs", "novice": "360 lbs", "intermediate": "450 lbs", "advanced": "540 lbs", "elite": "720 lbs", "worldclass": "900 lbs" },
+        "200": { "beginner": "300 lbs", "novice": "400 lbs", "intermediate": "500 lbs", "advanced": "600 lbs", "elite": "800 lbs", "worldclass": "1000 lbs" }
+      }
+    },
+    "lat_pulldown": {
+      "display_name": "Lat Pulldown",
+      "muscle_group": "Back",
+      "primary_muscles": ["lats"],
+      "secondary_muscles": ["biceps", "upper_back"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.4x" },
+        "novice":       { "score": 25, "multiplier": "0.6x" },
+        "intermediate": { "score": 42, "multiplier": "0.8x" },
+        "advanced":     { "score": 59, "multiplier": "1.0x" },
+        "elite":        { "score": 76, "multiplier": "1.2x" },
+        "worldclass":   { "score": 93, "multiplier": "1.5x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "60 lbs", "novice": "90 lbs", "intermediate": "120 lbs", "advanced": "150 lbs", "elite": "180 lbs", "worldclass": "225 lbs" },
+        "180": { "beginner": "72 lbs", "novice": "108 lbs", "intermediate": "144 lbs", "advanced": "180 lbs", "elite": "216 lbs", "worldclass": "270 lbs" },
+        "200": { "beginner": "80 lbs", "novice": "120 lbs", "intermediate": "160 lbs", "advanced": "200 lbs", "elite": "240 lbs", "worldclass": "300 lbs" }
+      }
+    },
+    "bicep_curl": {
+      "display_name": "Bicep Curl",
+      "muscle_group": "Arms",
+      "primary_muscles": ["biceps"],
+      "secondary_muscles": [],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.15x" },
+        "novice":       { "score": 25, "multiplier": "0.25x" },
+        "intermediate": { "score": 42, "multiplier": "0.35x" },
+        "advanced":     { "score": 59, "multiplier": "0.45x" },
+        "elite":        { "score": 76, "multiplier": "0.55x" },
+        "worldclass":   { "score": 93, "multiplier": "0.65x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "23 lbs", "novice": "38 lbs", "intermediate": "53 lbs", "advanced": "68 lbs", "elite": "83 lbs", "worldclass": "98 lbs" },
+        "180": { "beginner": "27 lbs", "novice": "45 lbs", "intermediate": "63 lbs", "advanced": "81 lbs", "elite": "99 lbs", "worldclass": "117 lbs" },
+        "200": { "beginner": "30 lbs", "novice": "50 lbs", "intermediate": "70 lbs", "advanced": "90 lbs", "elite": "110 lbs", "worldclass": "130 lbs" }
+      }
+    },
+    "incline_bench": {
+      "display_name": "Incline Bench Press",
+      "muscle_group": "Chest",
+      "primary_muscles": ["chest", "shoulders"],
+      "secondary_muscles": ["biceps"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.4x" },
+        "novice":       { "score": 25, "multiplier": "0.6x" },
+        "intermediate": { "score": 42, "multiplier": "0.85x" },
+        "advanced":     { "score": 59, "multiplier": "1.1x" },
+        "elite":        { "score": 76, "multiplier": "1.35x" },
+        "worldclass":   { "score": 93, "multiplier": "1.7x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "60 lbs", "novice": "90 lbs", "intermediate": "128 lbs", "advanced": "165 lbs", "elite": "203 lbs", "worldclass": "255 lbs" },
+        "180": { "beginner": "72 lbs", "novice": "108 lbs", "intermediate": "153 lbs", "advanced": "198 lbs", "elite": "243 lbs", "worldclass": "306 lbs" },
+        "200": { "beginner": "80 lbs", "novice": "120 lbs", "intermediate": "170 lbs", "advanced": "220 lbs", "elite": "270 lbs", "worldclass": "340 lbs" }
+      }
+    },
+    "romanian_deadlift": {
+      "display_name": "Romanian Deadlift",
+      "muscle_group": "Back/Legs",
+      "primary_muscles": ["glutes", "lats"],
+      "secondary_muscles": ["quads", "core"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.5x" },
+        "novice":       { "score": 25, "multiplier": "0.75x" },
+        "intermediate": { "score": 42, "multiplier": "1.0x" },
+        "advanced":     { "score": 59, "multiplier": "1.3x" },
+        "elite":        { "score": 76, "multiplier": "1.6x" },
+        "worldclass":   { "score": 93, "multiplier": "2.0x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "75 lbs", "novice": "113 lbs", "intermediate": "150 lbs", "advanced": "195 lbs", "elite": "240 lbs", "worldclass": "300 lbs" },
+        "180": { "beginner": "90 lbs", "novice": "135 lbs", "intermediate": "180 lbs", "advanced": "234 lbs", "elite": "288 lbs", "worldclass": "360 lbs" },
+        "200": { "beginner": "100 lbs", "novice": "150 lbs", "intermediate": "200 lbs", "advanced": "260 lbs", "elite": "320 lbs", "worldclass": "400 lbs" }
+      }
+    },
+    "front_squat": {
+      "display_name": "Front Squat",
+      "muscle_group": "Legs",
+      "primary_muscles": ["quads", "core"],
+      "secondary_muscles": ["glutes"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.5x" },
+        "novice":       { "score": 25, "multiplier": "0.75x" },
+        "intermediate": { "score": 42, "multiplier": "1.0x" },
+        "advanced":     { "score": 59, "multiplier": "1.25x" },
+        "elite":        { "score": 76, "multiplier": "1.6x" },
+        "worldclass":   { "score": 93, "multiplier": "2.0x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "75 lbs", "novice": "113 lbs", "intermediate": "150 lbs", "advanced": "188 lbs", "elite": "240 lbs", "worldclass": "300 lbs" },
+        "180": { "beginner": "90 lbs", "novice": "135 lbs", "intermediate": "180 lbs", "advanced": "225 lbs", "elite": "288 lbs", "worldclass": "360 lbs" },
+        "200": { "beginner": "100 lbs", "novice": "150 lbs", "intermediate": "200 lbs", "advanced": "250 lbs", "elite": "320 lbs", "worldclass": "400 lbs" }
+      }
+    },
+    "dumbbell_press": {
+      "display_name": "Dumbbell Press",
+      "muscle_group": "Chest",
+      "primary_muscles": ["chest", "shoulders"],
+      "secondary_muscles": ["biceps"],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.2x each" },
+        "novice":       { "score": 25, "multiplier": "0.3x each" },
+        "intermediate": { "score": 42, "multiplier": "0.4x each" },
+        "advanced":     { "score": 59, "multiplier": "0.5x each" },
+        "elite":        { "score": 76, "multiplier": "0.65x each" },
+        "worldclass":   { "score": 93, "multiplier": "0.8x+ each" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "30 lbs ea", "novice": "45 lbs ea", "intermediate": "60 lbs ea", "advanced": "75 lbs ea", "elite": "98 lbs ea", "worldclass": "120 lbs ea" },
+        "180": { "beginner": "36 lbs ea", "novice": "54 lbs ea", "intermediate": "72 lbs ea", "advanced": "90 lbs ea", "elite": "117 lbs ea", "worldclass": "144 lbs ea" },
+        "200": { "beginner": "40 lbs ea", "novice": "60 lbs ea", "intermediate": "80 lbs ea", "advanced": "100 lbs ea", "elite": "130 lbs ea", "worldclass": "160 lbs ea" }
+      }
+    },
+    "tricep_pushdown": {
+      "display_name": "Tricep Pushdown",
+      "muscle_group": "Arms",
+      "primary_muscles": ["biceps"],
+      "secondary_muscles": [],
+      "tiers": {
+        "beginner":     { "score": 10, "multiplier": "0.15x" },
+        "novice":       { "score": 25, "multiplier": "0.25x" },
+        "intermediate": { "score": 42, "multiplier": "0.35x" },
+        "advanced":     { "score": 59, "multiplier": "0.45x" },
+        "elite":        { "score": 76, "multiplier": "0.55x" },
+        "worldclass":   { "score": 93, "multiplier": "0.7x+" }
+      },
+      "bodyweight_examples": {
+        "150": { "beginner": "23 lbs", "novice": "38 lbs", "intermediate": "53 lbs", "advanced": "68 lbs", "elite": "83 lbs", "worldclass": "105 lbs" },
+        "180": { "beginner": "27 lbs", "novice": "45 lbs", "intermediate": "63 lbs", "advanced": "81 lbs", "elite": "99 lbs", "worldclass": "126 lbs" },
+        "200": { "beginner": "30 lbs", "novice": "50 lbs", "intermediate": "70 lbs", "advanced": "90 lbs", "elite": "110 lbs", "worldclass": "140 lbs" }
+      }
+    }
+  }
+}

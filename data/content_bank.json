@@ -1,0 +1,149 @@
+{
+  "_meta": {
+    "purpose": "Content bank for GENESIS carousel generation — hooks, pain points, CTAs, captions",
+    "created": "2026-04-13",
+    "rule": "All content must accurately represent PRPath features. No invented features."
+  },
+
+  "score_rank_hooks": [
+    "What's your {exercise} SCORE?",
+    "Where do you rank on {exercise}?",
+    "Are you ELITE on {exercise}?",
+    "How strong is your {exercise}?",
+    "Rate your {exercise} strength",
+    "{exercise}: Where do you stand?",
+    "Can you hit World Class on {exercise}?",
+    "Most people are Novice on {exercise}...",
+    "Only 1% reach World Class on {exercise}"
+  ],
+
+  "listicle_topics": [
+    {
+      "title": "5 reasons you're stuck at the same weight",
+      "slides": [
+        "You don't remember last week's numbers",
+        "You're not tracking progressive overload",
+        "Your rest times are all over the place",
+        "You never deload when you should",
+        "You're guessing instead of measuring"
+      ],
+      "cta": "Track every set with PRPath"
+    },
+    {
+      "title": "4 signs you're actually getting stronger",
+      "slides": [
+        "The weight that crushed you last month feels light",
+        "You're adding reps before adding weight",
+        "Your warm-up sets feel like nothing",
+        "You stopped dreading certain exercises"
+      ],
+      "cta": "Track your strength score"
+    },
+    {
+      "title": "3 mistakes killing your bench progress",
+      "slides": [
+        "You bench the same weight every Monday",
+        "You skip tracking so you forget what worked",
+        "You never check if you're actually progressing"
+      ],
+      "cta": "PRPath tracks it all for you"
+    },
+    {
+      "title": "Why your friend is stronger than you",
+      "slides": [
+        "They track every single set",
+        "They know their exact numbers from last week",
+        "They follow progressive overload religiously",
+        "They don't guess — they measure"
+      ],
+      "cta": "Start tracking with PRPath"
+    },
+    {
+      "title": "6 things strong people track that you don't",
+      "slides": [
+        "Total volume per muscle group",
+        "Their strength score over time",
+        "Rest time between sets",
+        "Which muscles are lagging",
+        "Personal records for every exercise",
+        "Weekly training consistency"
+      ],
+      "cta": "PRPath tracks all of this"
+    },
+    {
+      "title": "The #1 reason beginners quit after 3 months",
+      "slides": [
+        "They can't see their progress",
+        "Without tracking, every session feels the same",
+        "No numbers = no proof you're improving",
+        "Your brain needs to SEE the gains"
+      ],
+      "cta": "See your strength score grow"
+    }
+  ],
+
+  "relatable_hooks": [
+    "Do you even train legs?",
+    "POV: It's chest day and all benches are taken",
+    "Rest day guilt is real",
+    "When someone asks to work in on your last set",
+    "The gym at 5 AM vs 5 PM",
+    "Nobody talks about how lonely the gym is at 6 AM",
+    "I don't feel like going to the gym today",
+    "When your gym crush sees you fail a rep",
+    "Leg day tomorrow means stairs are the enemy",
+    "That one guy who never reracks the weights",
+    "When the pre-workout hits different",
+    "The difference between 1 year and 3 years of lifting"
+  ],
+
+  "nutrition_hooks": [
+    "Food swaps that won't kill your gains",
+    "What 40g of protein actually looks like",
+    "Stop eating this if you want to build muscle",
+    "The meal that changed my cut",
+    "High protein meals under 500 calories",
+    "What I eat in a day (bulking edition)"
+  ],
+
+  "caption_templates": {
+    "tiktok": {
+      "score_rank": "Where do you rank? Comment your {exercise} weight 👇 #gymtok #strengthscore #fitness #prpath",
+      "body_map": "Tag someone who needs to see this 💪 #gymtok #gains #musclegrowth #prpath",
+      "listicle": "{title} 🏋️ Save this for your next session #gymtok #fitness #workouttips #prpath",
+      "relatable": "{hook} 😤 #gymtok #gymhumor #gymmemes #relatable",
+      "nutrition": "{hook} 🍗 #gymtok #mealprep #highprotein #fitness #prpath"
+    },
+    "youtube": {
+      "score_rank": "What's Your {exercise} Score? Find out where you rank 💪 #Shorts",
+      "body_map": "Start vs Now — Track your muscle progress #Shorts",
+      "listicle": "{title} #Shorts #GymTips",
+      "relatable": "{hook} #Shorts #GymLife",
+      "nutrition": "{hook} #Shorts #MealPrep"
+    },
+    "instagram": {
+      "score_rank": "Where do you rank? 💪 Comment your {exercise} weight #strengthscore #gymtok #prpathapp",
+      "body_map": "The glow up is real 🔥 #gains #musclegrowth #prpathapp",
+      "listicle": "{title} 📝 Save for later #gymtips #fitness #prpathapp",
+      "relatable": "{hook} 😅 #gymhumor #gymlife #relatable",
+      "nutrition": "{hook} 🥗 #mealprep #highprotein #prpathapp"
+    },
+    "facebook": {
+      "score_rank": "What's your {exercise} score? Comment below 👇 #gym #fitness #strength",
+      "body_map": "Track your progress 💪 #gym #fitness #gains",
+      "listicle": "{title} #gym #fitness #tips #workout",
+      "relatable": "{hook} #gym #gymlife #humor #fitness",
+      "nutrition": "{hook} #mealprep #protein #gym #fitness"
+    }
+  },
+
+  "cta_taglines": [
+    "Track your strength score",
+    "See where you rank",
+    "Stop guessing. Start tracking.",
+    "Your gym report card",
+    "Know your numbers",
+    "Track every set. See every gain.",
+    "Free on the App Store"
+  ]
+}
