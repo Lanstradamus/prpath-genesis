@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>PRPath Listicle Slide</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+  /* listicle_slide.html — one numbered item per slide.
+     URL params:
+       ?num=01                  two-char number badge (default 01)
+       &title=...               headline (required)
+       &body=...                one-sentence body (required)
+       &accent=orange           accent color: orange|green|red|yellow (default orange)
+       &tag=...                 tiny uppercase tag shown above the number (optional)
+  */
+  .slide {
+    width: 1080px;
+    height: 1350px;
+    background: var(--bg-dark);
+    padding: 100px 90px 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--orange);
+  }
+  .logo-row img {
+    width: 44px;
+    height: 44px;
+  }
+  .tag-line {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 28px;
+  }
+  .num {
+    font-family: var(--font-rounded);
+    font-weight: 900;
+    font-size: 260px;
+    line-height: 0.9;
+    color: var(--orange);
+    letter-spacing: -8px;
+  }
+  .num.green { color: var(--tier-advanced); }
+  .num.red { color: var(--tier-beginner); }
+  .num.yellow { color: var(--tier-intermediate); }
+  .title {
+    font-family: var(--font);
+    font-weight: 800;
+    font-size: 86px;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: #fff;
+    margin-top: 40px;
+    max-width: 880px;
+  }
+  .body {
+    font-size: 34px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 28px;
+    max-width: 880px;
+    font-weight: 400;
+  }
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pagination {
+    font-size: 22px;
+    color: var(--gray);
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .accent-bar {
+    height: 6px;
+    width: 120px;
+    background: var(--orange);
+    border-radius: 3px;
+  }
+  .accent-bar.green { background: var(--tier-advanced); }
+  .accent-bar.red { background: var(--tier-beginner); }
+  .accent-bar.yellow { background: var(--tier-intermediate); }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <div class="top">
+      <div class="logo-row">
+        <img src="../shared/prpath-logo.png" alt="PRPath">
+        <span>PRPath</span>
+      </div>
+    </div>
+
+    <div class="middle">
+      <div class="tag-line" id="tag"></div>
+      <div class="accent-bar" id="bar"></div>
+      <div class="num" id="num">01</div>
+      <div class="title" id="title">Your bench is stalling because you're not tracking effective reps.</div>
+      <div class="body" id="body">PRPath flags warmups automatically so your real working sets aren't diluted by fluff.</div>
+    </div>
+
+    <div class="footer">
+      <div class="pagination" id="pagination"></div>
+      <div class="pagination">PRPATH.APP</div>
+    </div>
+  </div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const num = params.get('num') || '01';
+  const title = params.get('title');
+  const body = params.get('body');
+  const accent = params.get('accent') || 'orange';
+  const tag = params.get('tag') || '';
+  const total = params.get('total') || '';
+
+  if (title) document.getElementById('title').textContent = decodeURIComponent(title);
+  if (body) document.getElementById('body').textContent = decodeURIComponent(body);
+  document.getElementById('num').textContent = num;
+  document.getElementById('tag').textContent = tag;
+  document.getElementById('pagination').textContent = total ? num + ' / ' + total : '';
+
+  const numEl = document.getElementById('num');
+  const barEl = document.getElementById('bar');
+  if (accent !== 'orange') {
+    numEl.classList.add(accent);
+    barEl.classList.add(accent);
+  }
+</script>
+</body>
+</html>

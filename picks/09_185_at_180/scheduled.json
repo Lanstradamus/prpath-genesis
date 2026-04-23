@@ -1,0 +1,41 @@
+{
+  "slot_id": "prpath-batch-20260422-wed-d1-s0",
+  "post_id": "09_185_at_180",
+  "post_id_pfm": null,
+  "scheduled_at": "2026-04-24T10:00:00-05:00",
+  "dry_run": true,
+  "batch_id": "prpath-batch-20260422-wed",
+  "pfm_response": {
+    "ok": true,
+    "slot": "prpath-batch-20260422-wed-d1-s0",
+    "status": "dry_run",
+    "post_id": "09_185_at_180",
+    "scheduled_at": "2026-04-24T10:00:00-05:00",
+    "feature_anchor": "D",
+    "caption": "Your bench number isn't unranked if you download PRPath 💪\n\nhttps://apps.apple.com/app/id6755009279?ppid=beeeccff-75c0-460e-9364-15cd99af83c8\n\n#gymtok #strengthtraining #gymbro #prpath",
+    "slides": [
+      "/Users/lancesessions/Developer/PRPathShots/samples/posts_v2/09_185_at_180/slide_01_issue.png",
+      "/Users/lancesessions/Developer/PRPathShots/samples/posts_v2/09_185_at_180/slide_02_solution.png"
+    ],
+    "accounts": {
+      "tiktok": "spc_sWZETfCSf3cu61eysKr",
+      "instagram": "spc_qTturVLaLkM0ScN2Y0vix",
+      "facebook": "spc_qxampWEEwXAov3K710P6",
+      "youtube": "spc_2uYNbVTcdEkuUlZ1R1wgJ"
+    },
+    "platforms_planned": {
+      "tiktok": {
+        "kind": "carousel",
+        "assets": 2
+      },
+      "instagram_facebook_bundle": {
+        "kind": "carousel",
+        "assets": 2
+      },
+      "youtube_short": {
+        "kind": "stitched_video",
+        "source": "slides → mp4 via video_stitcher"
+      }
+    }
+  }
+}

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRPath Pipeline — Dashboard Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          bg:     '#1C1C1E',
+          card:   '#2C2C2E',
+          card2:  '#3A3A3C',
+          border: '#38383A',
+          orange: '#FF6B35',
+          muted:  '#8E8E93',
+          text:   '#F2F2F7',
+          beginner:     '#FF3B30',
+          novice:       '#FF9500',
+          intermediate: '#FFCC00',
+          advanced:     '#34C759',
+          elite:        '#00B0FF',
+          worldclass:   '#AF52DE',
+        },
+        fontFamily: { sans: ['-apple-system','SF Pro Text','system-ui','sans-serif'] },
+      }
+    }
+  }
+</script>
+<style>
+  body { background: #1C1C1E; color: #F2F2F7; }
+  .card { background: #2C2C2E; border: 1px solid #38383A; }
+  .card2 { background: #3A3A3C; border: 1px solid #48484A; }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:2px 10px; border-radius:9999px; font-size:11px; font-weight:600; letter-spacing:0.3px; }
+  .pill-ok   { background:rgba(52,199,89,0.15);  color:#34C759; }
+  .pill-warn { background:rgba(255,204,0,0.15);  color:#FFCC00; }
+  .pill-err  { background:rgba(255,59,48,0.15);  color:#FF3B30; }
+  .pill-run  { background:rgba(0,176,255,0.15);  color:#00B0FF; }
+  .pill-idle { background:rgba(142,142,147,0.15);color:#8E8E93; }
+  .btn  { background:#3A3A3C; border:1px solid #48484A; color:#F2F2F7; padding:6px 12px; border-radius:8px; font-weight:500; font-size:13px; transition:all 0.15s; cursor:pointer; }
+  .btn:hover { background:#48484A; }
+  .btn-pri { background:#FF6B35; border-color:#FF6B35; color:white; }
+  .btn-pri:hover { background:#FF5722; border-color:#FF5722; }
+  .btn-live { background:#34C759; border-color:#34C759; color:white; }
+  .btn-live:hover { background:#30B857; }
+  .btn-danger { background:#FF3B30; border-color:#FF3B30; color:white; }
+  .btn-danger:hover { background:#E5352A; }
+  .btn-sm { padding:3px 8px; font-size:11px; }
+  .slot-image { background:linear-gradient(135deg,#2C2C2E,#1C1C1E); aspect-ratio: 4/5; border-radius:8px; position:relative; overflow:hidden; }
+  .slot-image::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,107,53,0.03) 10px, rgba(255,107,53,0.03) 20px); }
+  code, pre { font-family: 'SF Mono', Menlo, monospace; font-size: 11.5px; }
+  pre { background:#1C1C1E; border:1px solid #38383A; padding:10px; border-radius:6px; max-height:240px; overflow-y:auto; color:#8E8E93; }
+  .term-green { color:#34C759; }
+  .term-yellow { color:#FFCC00; }
+  .term-red { color:#FF3B30; }
+  .term-gray { color:#8E8E93; }
+  .tab { padding:8px 14px; color:#8E8E93; border-bottom:2px solid transparent; cursor:pointer; font-weight:500; font-size:13px; }
+  .tab.active { color:#FF6B35; border-bottom-color:#FF6B35; }
+  .tab:hover { color:#F2F2F7; }
+  .glow { box-shadow: 0 0 0 1px rgba(255,107,53,0.3), 0 0 20px rgba(255,107,53,0.15); }
+  .bar { height:4px; background:#3A3A3C; border-radius:2px; overflow:hidden; }
+  .bar-fill { height:100%; background:linear-gradient(90deg, #FF6B35, #FFCC00); }
+  details > summary { list-style:none; cursor:pointer; }
+  details > summary::-webkit-details-marker { display:none; }
+</style>
+</head>
+<body class="font-sans min-h-screen">
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="border-b border-border sticky top-0 bg-bg/95 backdrop-blur z-10">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-orange flex items-center justify-center font-bold">P</div>
+      <div>
+        <h1 class="text-lg font-semibold leading-tight">PRPath Pipeline</h1>
+        <p class="text-xs text-muted">Mockup · localhost:8080</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="pill pill-ok">● ALL SYSTEMS OK</span>
+      <span class="text-xs text-muted">last pulse 3m ago</span>
+      <button class="btn btn-sm">⚙ Settings</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ NEXT-ACTION BANNER ═══════════ -->
+<section class="max-w-7xl mx-auto px-6 pt-6">
+  <div class="card rounded-xl p-4 glow flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="text-3xl">👋</div>
+      <div>
+        <div class="text-sm text-muted uppercase tracking-wider font-semibold">Next action</div>
+        <div class="text-base mt-1"><span class="text-orange font-semibold">Sunday Batch</span> is ready for review — 9 posts drafted for Mon/Tue/Wed (Apr 27–29). Captions need your approval before they go live.</div>
+      </div>
+    </div>
+    <a href="#approval" class="btn btn-pri">Review 9 posts →</a>
+  </div>
+</section>
+
+<!-- ═══════════ TABS ═══════════ -->
+<nav class="max-w-7xl mx-auto px-6 pt-6 flex items-center gap-1 border-b border-border">
+  <div class="tab active">Overview</div>
+  <div class="tab">Approval Queue <span class="pill pill-run ml-1">9</span></div>
+  <div class="tab">Metrics</div>
+  <div class="tab">Schedule</div>
+  <div class="tab">Posted Archive</div>
+  <div class="tab">Settings</div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-6 py-6 space-y-8">
+
+<!-- ═══════════ SECTION 1 — SCRIPT BUTTONS ═══════════ -->
+<section>
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Pipeline Scripts</h2>
+    <span class="text-xs text-muted">Click any tile to run that script · streams output live</span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+
+    <!-- Preflight -->
+    <div class="card rounded-lg p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Daily Preflight</div>
+          <div class="text-xs text-muted">OAuth + env + disk health</div>
+        </div>
+        <span class="pill pill-ok">OK</span>
+      </div>
+      <div class="text-xs text-muted mt-2 mb-3">Ran 3 min ago · all 4 platforms green</div>
+      <div class="flex gap-2">
+        <button class="btn btn-pri btn-sm flex-1">▶ Run now</button>
+        <button class="btn btn-sm">📜 Log</button>
+      </div>
+    </div>
+
+    <!-- Scout -->
+    <div class="card rounded-lg p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Batch Scout</div>
+          <div class="text-xs text-muted">Batch readiness check</div>
+        </div>
+        <span class="pill pill-ok">OK</span>
+      </div>
+      <div class="text-xs text-muted mt-2 mb-3">Ran 6h ago · anchor coverage A-F ✓</div>
+      <div class="flex gap-2">
+        <button class="btn btn-pri btn-sm flex-1">▶ Run now</button>
+        <button class="btn btn-sm">📜 Log</button>
+      </div>
+    </div>
+
+    <!-- Verify -->
+    <div class="card rounded-lg p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Daily Verify</div>
+          <div class="text-xs text-muted">Yesterday's posts + 24h stats</div>
+        </div>
+        <span class="pill pill-warn">WARN</span>
+      </div>
+      <div class="text-xs text-muted mt-2 mb-3">Ran 5h ago · 1 post metrics unavailable</div>
+      <div class="flex gap-2">
+        <button class="btn btn-pri btn-sm flex-1">▶ Run now</button>
+        <button class="btn btn-sm">📜 Log</button>
+      </div>
+    </div>
+
+    <!-- Metrics Pulse -->
+    <div class="card rounded-lg p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Metrics Pulse</div>
+          <div class="text-xs text-muted">6-12h shadow-ban check</div>
+        </div>
+        <span class="pill pill-idle">— idle</span>
+      </div>
+      <div class="text-xs text-muted mt-2 mb-3">Not run today · next: 9pm</div>
+      <div class="flex gap-2">
+        <button class="btn btn-pri btn-sm flex-1">▶ Run now</button>
+        <button class="btn btn-sm">📜 Log</button>
+      </div>
+    </div>
+
+    <!-- Sunday Batch -->
+    <div class="card rounded-lg p-4 glow">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Sunday Batch</div>
+          <div class="text-xs text-muted">Generate Mon/Tue/Wed posts</div>
+        </div>
+        <span class="pill pill-run">● READY</span>
+      </div>
+      <div class="text-xs text-orange mt-2 mb-3">9 posts drafted · awaiting approval</div>
+      <div class="flex gap-2">
+        <button class="btn btn-pri btn-sm flex-1">Review queue →</button>
+        <button class="btn btn-sm">🔄 Regen</button>
+      </div>
+    </div>
+
+    <!-- Wednesday Batch -->
+    <div class="card rounded-lg p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Wednesday Batch</div>
+          <div class="text-xs text-muted">Generate Thu/Fri/Sat posts</div>
+        </div>
+        <span class="pill pill-idle">— pending</span>
+      </div>
+      <div class="text-xs text-muted mt-2 mb-3">Fires Wed 10am · 5d 6h away</div>
+      <div class="flex gap-2">
+        <button class="btn btn-sm flex-1">▶ Run early</button>
+        <button class="btn btn-sm">📜 Log</button>
+      </div>
+    </div>
+
+    <!-- Sunday Recap -->
+    <div class="card rounded-lg p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Sunday Recap</div>
+          <div class="text-xs text-muted">Weekly Obsidian report</div>
+        </div>
+        <span class="pill pill-idle">— idle</span>
+      </div>
+      <div class="text-xs text-muted mt-2 mb-3">Next: Sun 9am · 6d away</div>
+      <div class="flex gap-2">
+        <button class="btn btn-pri btn-sm flex-1">▶ Run now</button>
+        <button class="btn btn-sm">📜 Log</button>
+      </div>
+    </div>
+
+    <!-- Midweek Pulse -->
+    <div class="card rounded-lg p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-semibold">Midweek Pulse</div>
+          <div class="text-xs text-muted">Mon+Tue advisory</div>
+        </div>
+        <span class="pill pill-idle">— idle</span>
+      </div>
+      <div class="text-xs text-muted mt-2 mb-3">Next: Wed 9am · 5d away</div>
+      <div class="flex gap-2">
+        <button class="btn btn-pri btn-sm flex-1">▶ Run now</button>
+        <button class="btn btn-sm">📜 Log</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 2 — APPROVAL QUEUE PREVIEW ═══════════ -->
+<section id="approval">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Approval Queue</h2>
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-muted">Sunday Batch · 9 posts · target Mon/Tue/Wed</span>
+      <button class="btn btn-sm">Expand all</button>
+      <button class="btn btn-live btn-sm">✓ Approve all + Schedule LIVE</button>
+    </div>
+  </div>
+
+  <!-- 1 example approval card — expanded -->
+  <div class="card rounded-xl p-5 mb-3">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-orange/20 flex items-center justify-center text-orange font-bold text-sm">B</div>
+        <div>
+          <div class="font-semibold">Slot 1 · Mon Apr 27 · 10:00 AM CT</div>
+          <div class="text-xs text-muted">Feature anchor B (Recovery) · post_id: 02_notes_mess · raw-POV slide 1</div>
+        </div>
+      </div>
+      <span class="pill pill-run">awaiting approval</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Slide 1 preview -->
+      <div>
+        <div class="text-xs text-muted mb-1.5 flex items-center justify-between">
+          <span>Slide 1 — hook (raw iPhone POV)</span>
+          <button class="btn btn-sm">🔄 Regen</button>
+        </div>
+        <div class="slot-image"></div>
+        <div class="text-xs text-muted mt-1.5 italic">"Your lifting log is a mess of iPhone Notes..."</div>
+      </div>
+
+      <!-- Slide 2 preview -->
+      <div>
+        <div class="text-xs text-muted mb-1.5">Slide 2 — solution (Workout History)</div>
+        <div class="slot-image"></div>
+        <div class="text-xs text-muted mt-1.5">PRPath Workout History screen · auto-pulled from PRPathShots</div>
+      </div>
+
+      <!-- Caption -->
+      <div>
+        <div class="text-xs text-muted mb-1.5 flex items-center justify-between">
+          <span>Caption <span class="text-orange">[draft]</span></span>
+          <button class="btn btn-sm">✎ Edit</button>
+        </div>
+        <div class="card2 rounded p-3 text-sm leading-relaxed">
+          Logging workouts isn't messy if you download PRPath 💪
+          <div class="text-xs text-muted mt-2">#gymtok #strengthtraining #gymbro #prpath</div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn btn-sm flex-1">⌘ Draft via Claude Code</button>
+          <button class="btn btn-sm">🔄 Retry</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mt-4 pt-4 border-t border-border">
+      <div class="text-xs text-muted">Platforms: TikTok · IG · YT · FB  ·  dry-run: <span class="text-orange">true</span></div>
+      <div class="flex gap-2">
+        <button class="btn btn-sm">Skip this slot</button>
+        <button class="btn btn-sm">Defer</button>
+        <button class="btn btn-pri btn-sm">✓ Approve this slot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 other slots collapsed -->
+  <div class="card rounded-lg divide-y divide-border">
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">C</div><span class="text-sm">Slot 2 · Mon Apr 27 · 3:00 PM · post_id: 08_proof_not_hype (emotional-universal) · PR graph</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-idle">drafted</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">F</div><span class="text-sm">Slot 3 · Mon Apr 27 · 8:00 PM · post_id: 14_decide_gym · Today dashboard</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-idle">drafted</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">A</div><span class="text-sm">Slot 4 · Tue Apr 28 · 10:00 AM · post_id: 01_atlas_skip_leg · Atlas Toxic</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-ok">approved</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">E</div><span class="text-sm">Slot 5 · Tue Apr 28 · 3:00 PM · post_id: 11_mfp_tedious (female-voiced) · Food log</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-idle">drafted</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">D</div><span class="text-sm">Slot 6 · Tue Apr 28 · 8:00 PM · post_id: 09_185_at_180 · Strength Score</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-idle">drafted</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">B</div><span class="text-sm">Slot 7 · Wed Apr 29 · 10:00 AM · post_id: 04_rest_or_push · Recovery Map</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-idle">drafted</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">G</div><span class="text-sm">Slot 8 · Wed Apr 29 · 3:00 PM · post_id: 17_leaner_stronger · Women-angled</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-idle">drafted</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+    <details class="p-4"><summary class="flex items-center justify-between">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">F</div><span class="text-sm">Slot 9 · Wed Apr 29 · 8:00 PM · post_id: 16_what_to_train · Today dashboard</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-idle">drafted</span><span class="text-muted text-xs">▼</span></div>
+    </summary></details>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 3 — METRICS ═══════════ -->
+<section>
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Metrics</h2>
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-muted">Last 4 weeks</span>
+      <button class="btn btn-sm">⤓ Export CSV</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <!-- Stat cards -->
+    <div class="card rounded-xl p-5">
+      <div class="text-xs text-muted uppercase tracking-wider">Weekly saves</div>
+      <div class="text-3xl font-bold mt-1">847 <span class="text-sm text-advanced">↑ 23%</span></div>
+      <div class="bar mt-3"><div class="bar-fill" style="width:62%"></div></div>
+      <div class="text-xs text-muted mt-2">Top post: <span class="text-orange">03_chest_fried</span> · 214 saves</div>
+    </div>
+    <div class="card rounded-xl p-5">
+      <div class="text-xs text-muted uppercase tracking-wider">Weekly views</div>
+      <div class="text-3xl font-bold mt-1">18.2K <span class="text-sm text-advanced">↑ 8%</span></div>
+      <div class="bar mt-3"><div class="bar-fill" style="width:44%"></div></div>
+      <div class="text-xs text-muted mt-2">TT 9.4K · IG 6.1K · YT 1.8K · FB 900</div>
+    </div>
+    <div class="card rounded-xl p-5">
+      <div class="text-xs text-muted uppercase tracking-wider">Raw-POV vs Designed</div>
+      <div class="flex items-baseline gap-2 mt-1">
+        <span class="text-2xl font-bold text-orange">+34%</span>
+        <span class="text-xs text-muted">saves uplift for raw-POV</span>
+      </div>
+      <div class="text-xs text-muted mt-3">4 raw-POV (#01,#03,#11,#14) vs 14 designed · <span class="text-advanced">test winning</span></div>
+    </div>
+  </div>
+
+  <!-- Per-post table -->
+  <div class="card rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-semibold">Per-post performance</div>
+      <div class="flex gap-1">
+        <button class="btn btn-sm">Sort: Saves ↓</button>
+        <button class="btn btn-sm">Filter</button>
+      </div>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="text-xs text-muted uppercase tracking-wider border-b border-border">
+        <tr>
+          <th class="text-left py-2 font-medium">Post</th>
+          <th class="text-left font-medium">Anchor</th>
+          <th class="text-left font-medium">Day</th>
+          <th class="text-right font-medium">Views</th>
+          <th class="text-right font-medium"><span class="text-orange">Saves</span></th>
+          <th class="text-right font-medium">Likes</th>
+          <th class="text-right font-medium">Comments</th>
+          <th class="text-left font-medium">Platforms</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        <tr class="hover:bg-card2/30">
+          <td class="py-2.5">03_chest_fried <span class="pill pill-run ml-1" style="font-size:9px">RAW-POV</span></td>
+          <td><span class="pill pill-idle">B</span></td>
+          <td class="text-muted">Apr 19</td>
+          <td class="text-right">4,132</td>
+          <td class="text-right font-semibold text-orange">214</td>
+          <td class="text-right">187</td>
+          <td class="text-right">12</td>
+          <td class="text-muted">TT · IG</td>
+        </tr>
+        <tr class="hover:bg-card2/30">
+          <td class="py-2.5">08_proof_not_hype</td>
+          <td><span class="pill pill-idle">C</span></td>
+          <td class="text-muted">Apr 18</td>
+          <td class="text-right">3,008</td>
+          <td class="text-right font-semibold">156</td>
+          <td class="text-right">145</td>
+          <td class="text-right">8</td>
+          <td class="text-muted">TT · IG · FB</td>
+        </tr>
+        <tr class="hover:bg-card2/30">
+          <td class="py-2.5">11_mfp_tedious <span class="pill pill-run ml-1" style="font-size:9px">FEMALE</span></td>
+          <td><span class="pill pill-idle">E</span></td>
+          <td class="text-muted">Apr 17</td>
+          <td class="text-right">2,441</td>
+          <td class="text-right font-semibold">122</td>
+          <td class="text-right">98</td>
+          <td class="text-right">5</td>
+          <td class="text-muted">TT · IG</td>
+        </tr>
+        <tr class="hover:bg-card2/30">
+          <td class="py-2.5">14_decide_gym <span class="pill pill-run ml-1" style="font-size:9px">RAW-POV</span></td>
+          <td><span class="pill pill-idle">F</span></td>
+          <td class="text-muted">Apr 16</td>
+          <td class="text-right">2,110</td>
+          <td class="text-right font-semibold">94</td>
+          <td class="text-right">88</td>
+          <td class="text-right">3</td>
+          <td class="text-muted">TT · IG · YT</td>
+        </tr>
+        <tr class="hover:bg-card2/30">
+          <td class="py-2.5">01_atlas_skip_leg <span class="pill pill-run ml-1" style="font-size:9px">RAW-POV</span></td>
+          <td><span class="pill pill-idle">A</span></td>
+          <td class="text-muted">Apr 15</td>
+          <td class="text-right">1,895</td>
+          <td class="text-right font-semibold">83</td>
+          <td class="text-right">76</td>
+          <td class="text-right">4</td>
+          <td class="text-muted">TT · IG · FB</td>
+        </tr>
+        <tr class="text-muted hover:bg-card2/30">
+          <td class="py-2.5">15_template_pdf</td>
+          <td><span class="pill pill-idle">F</span></td>
+          <td>Apr 15</td>
+          <td class="text-right">967</td>
+          <td class="text-right">38</td>
+          <td class="text-right">42</td>
+          <td class="text-right">1</td>
+          <td>TT · IG</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="text-center mt-3"><button class="btn btn-sm">Load next 10 rows</button></div>
+  </div>
+
+  <!-- Feature anchor bar -->
+  <div class="card rounded-xl p-5 mt-4">
+    <div class="font-semibold mb-3">Feature-anchor performance (avg saves per post)</div>
+    <div class="space-y-2">
+      <div class="flex items-center gap-3"><span class="text-xs w-32 text-muted">B · Recovery</span><div class="bar flex-1"><div class="bar-fill" style="width:88%"></div></div><span class="text-xs w-12 text-right font-semibold">168</span></div>
+      <div class="flex items-center gap-3"><span class="text-xs w-32 text-muted">C · PR Graph</span><div class="bar flex-1"><div class="bar-fill" style="width:72%"></div></div><span class="text-xs w-12 text-right font-semibold">139</span></div>
+      <div class="flex items-center gap-3"><span class="text-xs w-32 text-muted">A · Atlas Toxic</span><div class="bar flex-1"><div class="bar-fill" style="width:55%"></div></div><span class="text-xs w-12 text-right font-semibold">104</span></div>
+      <div class="flex items-center gap-3"><span class="text-xs w-32 text-muted">E · Food Log</span><div class="bar flex-1"><div class="bar-fill" style="width:48%"></div></div><span class="text-xs w-12 text-right font-semibold">91</span></div>
+      <div class="flex items-center gap-3"><span class="text-xs w-32 text-muted">F · Today Dash</span><div class="bar flex-1"><div class="bar-fill" style="width:42%"></div></div><span class="text-xs w-12 text-right font-semibold">79</span></div>
+      <div class="flex items-center gap-3"><span class="text-xs w-32 text-muted">D · Strength Score</span><div class="bar flex-1"><div class="bar-fill" style="width:31%"></div></div><span class="text-xs w-12 text-right font-semibold">58</span></div>
+      <div class="flex items-center gap-3"><span class="text-xs w-32 text-muted">G · Women-angled</span><div class="bar flex-1"><div class="bar-fill" style="width:25%"></div></div><span class="text-xs w-12 text-right font-semibold">47</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 4 — QUEUE + SCHEDULE + FEED ═══════════ -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+  <!-- Queue -->
+  <div class="card rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-semibold">Upcoming Queue</div>
+      <span class="text-xs text-muted">next 7 days</span>
+    </div>
+    <div class="space-y-2.5">
+      <div class="flex items-center gap-3 py-2 border-b border-border/50">
+        <div class="w-12 text-center"><div class="text-[10px] text-muted">MON</div><div class="text-lg font-bold">27</div></div>
+        <div class="flex-1 text-xs">
+          <div>10am · 02_notes_mess</div>
+          <div>3pm · 08_proof_not_hype</div>
+          <div>8pm · 14_decide_gym</div>
+        </div>
+        <span class="pill pill-run">awaiting</span>
+      </div>
+      <div class="flex items-center gap-3 py-2 border-b border-border/50">
+        <div class="w-12 text-center"><div class="text-[10px] text-muted">TUE</div><div class="text-lg font-bold">28</div></div>
+        <div class="flex-1 text-xs">
+          <div>10am · 01_atlas_skip_leg</div>
+          <div>3pm · 11_mfp_tedious</div>
+          <div>8pm · 09_185_at_180</div>
+        </div>
+        <span class="pill pill-run">awaiting</span>
+      </div>
+      <div class="flex items-center gap-3 py-2">
+        <div class="w-12 text-center"><div class="text-[10px] text-muted">WED</div><div class="text-lg font-bold">29</div></div>
+        <div class="flex-1 text-xs">
+          <div>10am · 04_rest_or_push</div>
+          <div>3pm · 17_leaner_stronger</div>
+          <div>8pm · 16_what_to_train</div>
+        </div>
+        <span class="pill pill-run">awaiting</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule config -->
+  <div class="card rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-semibold">Schedule Config</div>
+      <button class="btn btn-sm">+ Add</button>
+    </div>
+    <div class="space-y-2.5 text-xs">
+      <div class="flex items-center gap-2 py-1.5">
+        <input type="checkbox" checked class="accent-orange"><div class="flex-1"><div class="font-medium text-sm">Sunday Batch</div><code class="text-muted">0 10 * * 0</code></div><button class="btn btn-sm">Edit</button>
+      </div>
+      <div class="flex items-center gap-2 py-1.5">
+        <input type="checkbox" checked class="accent-orange"><div class="flex-1"><div class="font-medium text-sm">Wednesday Batch</div><code class="text-muted">0 10 * * 3</code></div><button class="btn btn-sm">Edit</button>
+      </div>
+      <div class="flex items-center gap-2 py-1.5">
+        <input type="checkbox" checked class="accent-orange"><div class="flex-1"><div class="font-medium text-sm">Daily Preflight</div><code class="text-muted">30 8 * * 1-6</code></div><button class="btn btn-sm">Edit</button>
+      </div>
+      <div class="flex items-center gap-2 py-1.5">
+        <input type="checkbox" class="accent-orange"><div class="flex-1"><div class="font-medium text-sm">Daily Verify</div><code class="text-muted">0 9 * * 1-6</code></div><button class="btn btn-sm">Edit</button>
+      </div>
+      <div class="flex items-center gap-2 py-1.5">
+        <input type="checkbox" class="accent-orange"><div class="flex-1"><div class="font-medium text-sm">Metrics Pulse</div><code class="text-muted">0 21 * * 1-6</code></div><button class="btn btn-sm">Edit</button>
+      </div>
+      <div class="flex items-center gap-2 py-1.5">
+        <input type="checkbox" class="accent-orange"><div class="flex-1"><div class="font-medium text-sm">Sunday Recap</div><code class="text-muted">0 9 * * 0</code></div><button class="btn btn-sm">Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity feed -->
+  <div class="card rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-semibold">Activity Feed</div>
+      <button class="btn btn-sm">Clear</button>
+    </div>
+    <div class="space-y-2.5 text-xs">
+      <div class="flex items-start gap-2"><span class="text-advanced mt-0.5">●</span><div class="flex-1"><div>Sunday Batch planned 9 slots successfully</div><div class="text-muted">00:59 · system</div></div></div>
+      <div class="flex items-start gap-2"><span class="text-orange mt-0.5">●</span><div class="flex-1"><div>Vision gate open — 9 captions needed</div><div class="text-muted">00:59 · system</div></div></div>
+      <div class="flex items-start gap-2"><span class="text-muted mt-0.5">●</span><div class="flex-1"><div>Preflight YELLOW → GREEN after PFM fix</div><div class="text-muted">00:55 · user</div></div></div>
+      <div class="flex items-start gap-2"><span class="text-muted mt-0.5">●</span><div class="flex-1"><div>postforme_client.py endpoint updated (.com → .dev)</div><div class="text-muted">00:52 · system</div></div></div>
+      <div class="flex items-start gap-2"><span class="text-advanced mt-0.5">●</span><div class="flex-1"><div>.env created from Handoff doc + APIKeysGenerated.swift</div><div class="text-muted">00:45 · system</div></div></div>
+      <div class="flex items-start gap-2"><span class="text-advanced mt-0.5">●</span><div class="flex-1"><div>All 8 pipeline scripts shipped (py_compile clean)</div><div class="text-muted">00:30 · system</div></div></div>
+      <div class="flex items-start gap-2"><span class="text-muted mt-0.5">●</span><div class="flex-1"><div>verify.py archived 3 slides from Apr 20 to posted/</div><div class="text-muted">Apr 21 09:00 · launchd</div></div></div>
+      <div class="flex items-start gap-2"><span class="text-warn mt-0.5">●</span><div class="flex-1"><div>Metrics pulse: FB slow start on 1 slot</div><div class="text-muted">Apr 20 21:00 · launchd</div></div></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════ SECTION 5 — LIVE TERMINAL OUTPUT (modal / bottom drawer look) ═══════════ -->
+<section>
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Live Terminal Output</h2>
+    <span class="text-xs text-muted">Shows when a script is running · streams in real-time</span>
+  </div>
+  <div class="card rounded-xl p-4">
+    <div class="flex items-center gap-2 mb-2.5 pb-2.5 border-b border-border">
+      <div class="w-3 h-3 rounded-full bg-beginner"></div>
+      <div class="w-3 h-3 rounded-full bg-novice"></div>
+      <div class="w-3 h-3 rounded-full bg-advanced"></div>
+      <span class="ml-2 text-xs text-muted font-mono">python3 preflight.py</span>
+      <span class="ml-auto pill pill-ok">exit 0 · 2.3s</span>
+    </div>
+<pre>STEP 1 — <span class="term-green">.env sanity</span>
+  OK — POSTFORME_API_KEY + GEMINI_API_KEY present
+STEP 2 — <span class="term-green">Post for Me accounts (brand=prpathapp)</span>
+  YouTube:   OK
+  TikTok:    OK
+  Instagram: OK (51d)
+  Facebook:  OK (51d)
+STEP 3 — <span class="term-green">Disk space</span>
+  Free: 12.5 GB of 228.3 GB
+STEP 4 — <span class="term-yellow">Today's batch manifest</span>
+  YELLOW — no manifest covering 2026-04-22
+
+<span class="term-yellow">OVERALL: YELLOW</span> (manifest gap — expected, pre-Sun-batch)</pre>
+  </div>
+</section>
+
+</main>
+
+<footer class="max-w-7xl mx-auto px-6 py-6 text-xs text-muted flex items-center justify-between border-t border-border mt-8">
+  <div>PRPath Pipeline v0.1 · data @ <code>prpath-genesis/pipeline.db</code></div>
+  <div>⌘K commands · ? help · SQLite · launchd @ localhost:8080</div>
+</footer>
+
+</body>
+</html>

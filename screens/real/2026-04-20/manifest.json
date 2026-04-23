@@ -1,0 +1,19 @@
+{
+  "captured_at": "2026-04-20T00:43:33-05:00",
+  "device": "iPhone 17 Pro",
+  "ios_version": "26.0",
+  "app_version": "standalone-clone",
+  "app_build": "1",
+  "profile_name": "alex",
+  "harvester_sha": "af3ddec61e9c",
+  "width": 1206,
+  "height": 2622,
+  "screens": [
+    {"slot": 1, "filename": "01_atlas_toxic_chat.png", "description": "Atlas Toxic Mode chat thread"},
+    {"slot": 2, "filename": "02_recovery_body_map.png", "description": "Recovery zone with Atlas rec card"},
+    {"slot": 3, "filename": "03_pr_graph_bench.png", "description": "Bench press PR history graph"},
+    {"slot": 4, "filename": "04_strength_score.png", "description": "Strength Score per-muscle"},
+    {"slot": 5, "filename": "05_food_log_photos.png", "description": "Photo food log day"},
+    {"slot": 6, "filename": "06_today_cta.png", "description": "Today dashboard Atlas CTA"}
+  ]
+}

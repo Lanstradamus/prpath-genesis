@@ -45,14 +45,23 @@ def pick_music(genre: str = None) -> Path:
     return random.choice(tracks)
 
 
-def stitch_video(slides_dir: str, output_path: str = None, music_genre: str = "hype", music_path: str = None) -> str:
+def stitch_video(
+    slides_dir: str,
+    output_path: str = None,
+    music_genre: str = "hype",
+    music_path: str = None,
+    transition: str = "fade",
+    slide_duration: float = None,
+) -> str:
     """Convert a folder of PNGs into a 9:16 MP4 slideshow with background music.
 
     Args:
         slides_dir: Folder containing slide_*.png files
         output_path: Where to save the MP4
-        music_genre: 'hype', 'upbeat', 'chill', or None (no music)
+        music_genre: 'hype', 'upbeat', 'chill', or None (no music / any via pick_music(None))
         music_path: Specific track override (full path)
+        transition: 'fade' (default — crossfade between slides) or 'cut' (abrupt)
+        slide_duration: Seconds per slide. Default uses SLIDE_DURATION (3.0).
     """
     slides_dir = Path(slides_dir)
     slides = sorted(slides_dir.glob("slide_*.png"))
@@ -64,8 +73,10 @@ def stitch_video(slides_dir: str, output_path: str = None, music_genre: str = "h
     if not output_path:
         output_path = str(slides_dir / f"{slides_dir.name}.mp4")
 
+    slide_dur = float(slide_duration) if slide_duration is not None else SLIDE_DURATION
+    fade_dur = FADE_DURATION if transition == "fade" else 0.0
     n = len(slides)
-    total_duration = n * SLIDE_DURATION - FADE_DURATION * (n - 1) if n > 1 else SLIDE_DURATION
+    total_duration = n * slide_dur - fade_dur * (n - 1) if n > 1 else slide_dur
 
     # Pick music
     music_file = None
@@ -77,7 +88,7 @@ def stitch_video(slides_dir: str, output_path: str = None, music_genre: str = "h
     print(f"[video] Stitching {n} slides into {total_duration:.1f}s video...")
     print(f"  Input: {slides_dir}")
     print(f"  Output: {output_path}")
-    print(f"  Format: {OUTPUT_WIDTH}x{OUTPUT_HEIGHT} (9:16), {SLIDE_DURATION}s/slide")
+    print(f"  Format: {OUTPUT_WIDTH}x{OUTPUT_HEIGHT} (9:16), {slide_dur}s/slide, transition={transition}")
     if music_file:
         print(f"  Music: {music_file.name} @ {int(MUSIC_VOLUME * 100)}% volume")
     else:
@@ -89,23 +100,32 @@ def stitch_video(slides_dir: str, output_path: str = None, music_genre: str = "h
     filter_parts = []
 
     for i, slide in enumerate(slides):
-        inputs.extend(["-loop", "1", "-t", str(SLIDE_DURATION), "-i", str(slide)])
-        # Scale to fit width, then pad to 1080x1920 with dark letterbox
+        inputs.extend(["-loop", "1", "-t", str(slide_dur), "-i", str(slide)])
+        # Scale preserving aspect ratio into a 1080x1920 box (decrease if larger),
+        # then pad to exactly 1080x1920 with dark letterbox. Fixed 2026-04-22 —
+        # handles mixed-aspect source slides (1080x1350 designed carousels vs
+        # 1206x2622 iPhone captures).
         filter_parts.append(
-            f"[{i}:v]scale={OUTPUT_WIDTH}:-1,pad={OUTPUT_WIDTH}:{OUTPUT_HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=#1C1C1E,setsar=1[v{i}]"
+            f"[{i}:v]scale={OUTPUT_WIDTH}:{OUTPUT_HEIGHT}:force_original_aspect_ratio=decrease,"
+            f"pad={OUTPUT_WIDTH}:{OUTPUT_HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=#1C1C1E,setsar=1[v{i}]"
         )
 
-    # Crossfade chain: v0 xfade v1 → xf0, xf0 xfade v2 → xf1, etc.
+    # Build transition chain — fade (crossfade) or cut (concat)
     if n == 1:
         filter_chain = filter_parts[0].replace(f"[v0]", "[outv]")
+    elif transition == "cut":
+        # Straight concat — no crossfade. Each slide plays full duration then hard-cut.
+        concat_inputs = "".join(f"[v{i}]" for i in range(n))
+        filter_chain = ";".join(filter_parts + [f"{concat_inputs}concat=n={n}:v=1:a=0[outv]"])
     else:
+        # Default: fade (xfade crossfade chain)
         xfade_parts = []
         prev = "v0"
         for i in range(1, n):
-            offset = i * SLIDE_DURATION - FADE_DURATION * i
+            offset = i * slide_dur - fade_dur * i
             out_label = "outv" if i == n - 1 else f"xf{i}"
             xfade_parts.append(
-                f"[{prev}][v{i}]xfade=transition=fade:duration={FADE_DURATION}:offset={offset:.2f}[{out_label}]"
+                f"[{prev}][v{i}]xfade=transition=fade:duration={fade_dur}:offset={offset:.2f}[{out_label}]"
             )
             prev = out_label
 

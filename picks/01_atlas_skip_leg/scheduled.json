@@ -1,0 +1,41 @@
+{
+  "slot_id": "prpath-batch-20260422-wed-d0-s1",
+  "post_id": "01_atlas_skip_leg",
+  "post_id_pfm": null,
+  "scheduled_at": "2026-04-23T15:00:00-05:00",
+  "dry_run": true,
+  "batch_id": "prpath-batch-20260422-wed",
+  "pfm_response": {
+    "ok": true,
+    "slot": "prpath-batch-20260422-wed-d0-s1",
+    "status": "dry_run",
+    "post_id": "01_atlas_skip_leg",
+    "scheduled_at": "2026-04-23T15:00:00-05:00",
+    "feature_anchor": "A",
+    "caption": "Putting off leg day until tomorrow isn't the move if you download PRPath 💪\n\nhttps://apps.apple.com/app/id6755009279?ppid=beeeccff-75c0-460e-9364-15cd99af83c8\n\n#gymtok #strengthtraining #gymbro #prpath",
+    "slides": [
+      "/Users/lancesessions/Developer/PRPathShots/samples/posts_v2/01_atlas_skip_leg/slide_01_issue.png",
+      "/Users/lancesessions/Developer/PRPathShots/samples/posts_v2/01_atlas_skip_leg/slide_02_solution.png"
+    ],
+    "accounts": {
+      "tiktok": "spc_sWZETfCSf3cu61eysKr",
+      "instagram": "spc_qTturVLaLkM0ScN2Y0vix",
+      "facebook": "spc_qxampWEEwXAov3K710P6",
+      "youtube": "spc_2uYNbVTcdEkuUlZ1R1wgJ"
+    },
+    "platforms_planned": {
+      "tiktok": {
+        "kind": "carousel",
+        "assets": 2
+      },
+      "instagram_facebook_bundle": {
+        "kind": "carousel",
+        "assets": 2
+      },
+      "youtube_short": {
+        "kind": "stitched_video",
+        "source": "slides → mp4 via video_stitcher"
+      }
+    }
+  }
+}

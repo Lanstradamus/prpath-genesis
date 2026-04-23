@@ -1,0 +1,21 @@
+<div class="space-y-2.5 text-xs">
+  {% for e in feed %}
+  <div class="flex items-start gap-2">
+    <span class="mt-0.5
+      {% if e.kind == 'success' %}text-advanced
+      {% elif e.kind == 'error' %}text-beginner
+      {% elif e.kind == 'warn' %}text-novice
+      {% elif e.kind == 'action' %}text-orange
+      {% else %}text-muted{% endif %}">●</span>
+    <div class="flex-1">
+      <div>{{ e.title }}</div>
+      <div class="text-muted">
+        {{ e.at_12h or e.at }} · {{ e.actor }}
+        {% if e.detail %} · <code>{{ e.detail[:60] }}{% if e.detail|length > 60 %}…{% endif %}</code>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-sm text-muted text-center py-4">No activity yet. Fire a script above.</div>
+  {% endfor %}
+</div>

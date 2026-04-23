@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{# -- Next-action banner (3 states) --
+     1. batches awaiting approval → ⚡ "N batch(es) awaiting review"
+     2. live posts scheduled      → ✅ "N posted · N scheduled · next fire X"
+     3. idle                      → 👋 "No batches in queue..."
+#}
+<section>
+  <div class="card rounded-xl p-4 glow flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="text-3xl">
+        {% if batches %}⚡
+        {% elif live_posts %}✅
+        {% else %}👋{% endif %}
+      </div>
+      <div>
+        <div class="text-sm text-muted uppercase tracking-wider font-semibold">Next action</div>
+        <div class="text-base mt-1">
+          {% if batches %}
+            <span class="text-orange font-semibold">{{ batches|length }} batch(es)</span> awaiting review.
+            Captions + approval needed before LIVE scheduling.
+          {% elif live_posts %}
+            <span class="text-green font-semibold">{{ live_posts|length }} slots LIVE</span>
+            <span class="text-muted">·</span>
+            {{ banner_posted }} posted
+            <span class="text-muted">·</span>
+            {{ banner_scheduled }} scheduled
+            {% if banner_failed %}
+              <span class="text-muted">·</span>
+              <span class="text-red font-semibold">{{ banner_failed }} failed</span>
+            {% endif %}
+            {% if banner_next_fire %}
+              <div class="text-xs text-muted mt-1">Next fire: <strong>{{ banner_next_fire }}</strong></div>
+            {% else %}
+              <div class="text-xs text-muted mt-1">All slots fired — review <a href="#live-posts" class="text-orange">LIVE Posts</a> for status</div>
+            {% endif %}
+          {% else %}
+            No batches in queue. Fire <strong>Sunday Batch</strong> or <strong>Wednesday Batch</strong> to generate 9 posts.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if batches %}
+      <a href="#approval" class="btn btn-pri">Review →</a>
+    {% elif live_posts %}
+      <a href="#live-posts" class="btn btn-pri">View LIVE →</a>
+    {% else %}
+      <button class="btn btn-pri"
+              hx-post="/run/run_batch_sun"
+              hx-swap="none"
+              onclick="setTimeout(() => location.reload(), 500)">
+        Run Sunday Batch
+      </button>
+    {% endif %}
+  </div>
+</section>
+
+{# -- Tabs (scroll-to-section) -- #}
+<nav class="flex items-center gap-1 border-b border-border">
+  <a href="#tiles-section" class="tab active">Overview</a>
+  <a href="#live-posts" class="tab">
+    LIVE Posts
+    {% if live_posts %}<span class="pill pill-run ml-1">{{ live_posts|length }}</span>{% endif %}
+  </a>
+  <a href="#approval" class="tab">
+    Approval Queue
+    {% if batches %}<span class="pill pill-run ml-1">{{ batches|map(attribute='slots')|map('length')|sum }}</span>{% endif %}
+  </a>
+  <a href="#perf" class="tab">Metrics</a>
+  <a href="#sched" class="tab">Schedule</a>
+  <a href="#data-sources" class="tab">Data Sources</a>
+  <a href="#feed" class="tab">Feed</a>
+</nav>
+
+{# -- Pipeline Scripts (htmx auto-refresh every 5s while a run is active) -- #}
+<section id="tiles-section">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Pipeline Scripts</h2>
+    <span class="text-xs text-muted">Click a tile to run · output streams live below</span>
+  </div>
+  <div id="tiles" hx-get="/tiles" hx-trigger="every 4s" hx-swap="innerHTML">
+    {% include "partials/tiles.html" %}
+  </div>
+</section>
+
+{# -- LIVE Posts — what's scheduled/posted to PFM right now -- #}
+{% if live_posts %}
+<section id="live-posts" class="mt-8">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">LIVE Posts</h2>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-muted">{{ live_posts|length }} slots · 4 platforms each</span>
+      <button class="btn btn-sm"
+              hx-post="/live-posts/refresh-status"
+              hx-swap="none"
+              hx-on::after-request="location.reload()">
+        🔄 Refresh status
+      </button>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+    {% for slot in live_posts %}
+    <div class="card rounded-xl p-4">
+      <div class="flex items-baseline justify-between mb-2">
+        <div>
+          <span class="pill pill-run">{{ slot.feature_anchor }}</span>
+          <span class="font-semibold ml-1">{{ slot.scheduled_at_12h or slot.scheduled_at }}</span>
+        </div>
+        <span class="text-xs text-muted font-mono">{{ slot.post_id }}</span>
+      </div>
+      {% if slot.caption %}
+      <p class="text-sm text-muted mb-3 truncate">{{ slot.caption.split('\n')[0] }}</p>
+      {% endif %}
+      <div class="grid grid-cols-4 gap-2">
+        {% for platform in ['tiktok','instagram','facebook','youtube'] %}
+          {% set p = slot.platforms.get(platform) %}
+          <div class="rounded-lg border border-border p-2 text-center text-xs">
+            <div class="font-semibold uppercase text-[10px] text-muted">
+              {% if platform == 'tiktok' %}TT{% elif platform == 'instagram' %}IG{% elif platform == 'facebook' %}FB{% else %}YT{% endif %}
+            </div>
+            {% if p and p.id %}
+              <div class="text-lg leading-none mt-1">
+                {% if p.status == 'posted' %}🟢
+                {% elif p.status == 'failed' %}❌
+                {% elif p.status == 'processing' %}🟡
+                {% else %}🕐{% endif %}
+              </div>
+              <div class="flex justify-center gap-1 mt-1">
+                <a href="{{ pfm_post_url_base }}/{{ p.id }}"
+                   target="_blank"
+                   class="text-[10px] text-muted hover:text-orange"
+                   title="Open in Post for Me">🔗</a>
+                <a href="{{ profile_urls[platform] }}"
+                   target="_blank"
+                   class="text-[10px] text-muted hover:text-orange"
+                   title="Open profile">📱</a>
+              </div>
+            {% else %}
+              <div class="text-lg leading-none mt-1 text-muted/50">—</div>
+              <div class="text-[10px] text-muted/50 mt-1">not fired</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# -- Approval queue -- #}
+{% if batches %}
+<section id="approval">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Approval Queue</h2>
+    <span class="text-xs text-muted">Preview each slot · edit captions · approve individually or in bulk</span>
+  </div>
+
+  {% for batch in batches %}
+  <div class="card rounded-xl p-5 mb-3">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="font-semibold">{{ batch.batch_id }}</div>
+        <div class="text-xs text-muted">target {{ batch.target }} · {{ batch.slots|length }} slots · dry_run={{ batch.dry_run }}</div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-sm"
+                hx-post="/batches/{{ batch.batch_id }}/draft-all" hx-swap="none"
+                hx-on::after-request="setTimeout(() => location.reload(), 400)">
+          ✨ Auto-draft all captions
+        </button>
+        <button class="btn btn-sm" hx-post="/batches/{{ batch.batch_id }}/approve-all" hx-swap="none"
+                onclick="if(!confirm('Approve ALL slots and push to PFM (dry-run respected)?')) event.stopPropagation();">
+          ✓ Approve all
+        </button>
+      </div>
+    </div>
+
+    <div class="card2 rounded-lg divide-y divide-border">
+      {% for slot in batch.slots %}
+      <details class="p-4">
+        <summary class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded bg-orange/20 text-orange text-xs font-bold flex items-center justify-center">
+              {{ slot.feature_anchor }}
+            </div>
+            {% set hhmm = slot.scheduled_at.split('T')[1][:5] %}
+            {% set h = hhmm[:2]|int %}{% set m = hhmm[3:5]|int %}
+            {% set ampm = 'am' if h < 12 else 'pm' %}
+            {% set h12 = (h % 12) or 12 %}
+            <span class="text-sm">
+              Slot {{ slot.slot_index + 1 }} · {{ slot.day }} · {{ h12 }}{% if m %}:{{ '%02d'|format(m) }}{% endif %}{{ ampm }} ·
+              <code class="text-orange">{{ slot.post_id }}</code>
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            {% if slot.approved %}
+              <span class="pill pill-ok">approved</span>
+            {% else %}
+              <span class="pill pill-idle">drafted</span>
+            {% endif %}
+          </div>
+        </summary>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <div class="text-xs text-muted mb-1.5">Slide 1 — hook</div>
+            {% if slot.slide_01_path %}
+              <img src="/slide?path={{ slot.slide_01_path }}" class="rounded-lg w-full">
+            {% else %}
+              <div class="slot-image"></div>
+            {% endif %}
+          </div>
+          <div>
+            <div class="text-xs text-muted mb-1.5">Slide 2 — solution</div>
+            {% if slot.slide_02_path %}
+              <img src="/slide?path={{ slot.slide_02_path }}" class="rounded-lg w-full">
+            {% else %}
+              <div class="slot-image"></div>
+            {% endif %}
+          </div>
+          <div>
+            <div class="text-xs text-muted mb-1.5">Caption</div>
+            <form hx-post="/batches/{{ batch.batch_id }}/slot/{{ slot.slot_id }}/caption" hx-swap="none" class="mb-2">
+              <textarea name="caption" class="card2 rounded p-3 text-sm w-full h-32"
+                        placeholder="Logging workouts isn't messy if you download PRPath">{{ slot.caption or '' }}</textarea>
+              <div class="flex gap-2 mt-2 flex-wrap">
+                <button type="submit" class="btn btn-sm">💾 Save</button>
+                <button type="button" class="btn btn-sm"
+                        hx-post="/batches/{{ batch.batch_id }}/slot/{{ slot.slot_id }}/regen" hx-swap="none"
+                        hx-on::after-request="setTimeout(() => location.reload(), 300)">
+                  🔄 Regen variant
+                </button>
+                <button type="button" class="btn btn-pri btn-sm"
+                        hx-post="/batches/{{ batch.batch_id }}/slot/{{ slot.slot_id }}/approve" hx-swap="none">
+                  ✓ Approve slot
+                </button>
+              </div>
+              <div class="text-xs text-muted mt-2">
+                Need edits? Tell Claude in your terminal: <span class="text-orange">"tweak slot {{ slot.slot_index + 1 }} caption to X"</span> — it'll update live.
+              </div>
+            </form>
+          </div>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+{# -- Queue / Schedule / Feed (3-col) -- #}
+<section id="sched" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+  {# Queue #}
+  <div class="card rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-semibold">Upcoming Queue</div>
+      <span class="text-xs text-muted">next 7 days</span>
+    </div>
+    {% if queue %}
+      {% set days = {} %}
+      {% for s in queue %}
+        {% if s.day not in days %}{% set _ = days.update({s.day: []}) %}{% endif %}
+        {% set _ = days[s.day].append(s) %}
+      {% endfor %}
+      <div class="space-y-2.5">
+      {% for day, slots_for_day in days.items() %}
+        <div class="py-2 border-b border-border/50 last:border-0">
+          <div class="text-xs text-muted mb-1">{{ day }}</div>
+          {% for s in slots_for_day %}
+            <div class="text-xs">
+              {# convert "14:00" → "2pm", "10:00" → "10am" #}
+              {% set hhmm = s.scheduled_at.split('T')[1][:5] %}
+              {% set h = hhmm[:2]|int %}{% set m = hhmm[3:5]|int %}
+              {% set ampm = 'am' if h < 12 else 'pm' %}
+              {% set h12 = (h % 12) or 12 %}
+              {% set t = h12 ~ (':' ~ '%02d'|format(m) if m else '') ~ ampm %}
+              {{ t }} · <code class="text-orange">{{ s.post_id }}</code>
+              {% if s.approved %}<span class="pill pill-ok ml-1">ok</span>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-sm text-muted text-center py-6">No scheduled posts.<br>Generate a batch to populate.</div>
+    {% endif %}
+  </div>
+
+  {# Schedule config #}
+  <div class="card rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-semibold">Schedule Config</div>
+      <span class="text-xs text-muted">cron · v0.1 read-only</span>
+    </div>
+    <div class="space-y-2 text-xs">
+      {% for s in schedules %}
+      <div class="flex items-center gap-2 py-1.5">
+        <form hx-post="/schedule/{{ s.script }}/toggle" hx-swap="none" hx-trigger="change">
+          <input type="checkbox" name="enabled" value="true" {% if s.enabled %}checked{% endif %} class="accent-orange"
+                 onchange="this.form.querySelector('input[name=enabled]').value = this.checked">
+        </form>
+        <div class="flex-1">
+          <div class="font-medium text-sm">{{ s.display_name }}</div>
+          <code class="text-muted">{{ s.cron_expr }}</code>
+          <span class="text-muted text-xs ml-1">· {{ s.description }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-xs text-muted mt-3 pt-3 border-t border-border">
+      ℹ Enabling a toggle writes to SQLite. launchd auto-wire coming in v0.2.
+    </div>
+  </div>
+
+  {# Activity feed #}
+  <div class="card rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-semibold">Activity Feed</div>
+      <span class="text-xs text-muted">live · 20 most recent</span>
+    </div>
+    <div id="feed" hx-get="/feed" hx-trigger="every 5s" hx-swap="innerHTML">
+      {% include "partials/feed.html" %}
+    </div>
+  </div>
+
+</section>
+
+{# -- Data sources panel (where outputs land) -- #}
+<section id="data-sources">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Where Data Lives</h2>
+    <span class="text-xs text-muted">click to jump</span>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">📊 SQLite state DB</div>
+      <div class="text-xs text-muted mb-3">All run history, batches, slots, captions, metrics, feed events</div>
+      <code class="text-xs text-orange break-all">prpath-genesis/pipeline.db</code>
+      <div class="text-xs text-muted mt-2">Inspect: <code>sqlite3 pipeline.db</code></div>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">📓 Weekly Reports (Obsidian)</div>
+      <div class="text-xs text-muted mb-3">Every Sunday, sunday_recap.py writes the 7-day rollup here</div>
+      <a href="obsidian://advanced-uri?vault=Lance%20Brain&filepath=200%20-%20Projects%2FPRPath%2FWeekly%20Reports"
+         class="btn btn-sm">Open in Obsidian</a>
+      <code class="text-xs text-orange break-all block mt-2">200 - Projects/PRPath/Weekly Reports/YYYY-MM-DD.md</code>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">📋 Monthly Retros (Obsidian)</div>
+      <div class="text-xs text-muted mb-3">1st Sunday of each month: feature-anchor cut/keep, cost audit</div>
+      <a href="obsidian://advanced-uri?vault=Lance%20Brain&filepath=200%20-%20Projects%2FPRPath%2FMonthly%20Retros"
+         class="btn btn-sm">Open in Obsidian</a>
+      <code class="text-xs text-orange break-all block mt-2">200 - Projects/PRPath/Monthly Retros/YYYY-MM.md</code>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">🗂 Posted Archive</div>
+      <div class="text-xs text-muted mb-3">Slides + metrics.json per slot, moved by verify.py the day after posting</div>
+      <code class="text-xs text-orange break-all">prpath-genesis/posted/&lt;date&gt;_slot&lt;N&gt;_&lt;post_id&gt;/</code>
+      <div class="text-xs text-muted mt-2">Each has both PNGs + scheduled.json + metrics.json</div>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">📦 Batch manifests</div>
+      <div class="text-xs text-muted mb-3">Per-batch plan: 9 slots, feature anchors, PFM schedule</div>
+      <code class="text-xs text-orange break-all">prpath-genesis/picks/_batches/&lt;batch_id&gt;/manifest.json</code>
+      <div class="text-xs text-muted mt-2">+ <code>vision_task.md</code> + <code>captions.json</code></div>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">📝 Strategy docs (Obsidian)</div>
+      <div class="text-xs text-muted mb-3">The plan that drives caption drafting + anchor rotation</div>
+      <a href="obsidian://advanced-uri?vault=Lance%20Brain&filepath=200%20-%20Projects%2FPRPath%2FPRPath%20-%20Week%202%20Content%20Strategy%20(2026-04-20).md"
+         class="btn btn-sm">Week 2 strategy</a>
+      <a href="obsidian://advanced-uri?vault=Lance%20Brain&filepath=200%20-%20Projects%2FPRPath%2FPRPath%20-%20Competitor%20Social%20Research%20(Apr%202026).md"
+         class="btn btn-sm">Competitor research</a>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">🧾 Script logs</div>
+      <div class="text-xs text-muted mb-3">Full stdout/stderr of every launchd-fired run</div>
+      <code class="text-xs text-orange break-all">prpath-genesis/dashboard/&lt;script&gt;.log</code>
+      <div class="text-xs text-muted mt-2">+ <code>&lt;script&gt;.error.log</code> for failures</div>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">⚙ launchd plists</div>
+      <div class="text-xs text-muted mb-3">macOS-native auto-fire config (what runs when)</div>
+      <code class="text-xs text-orange break-all">~/Library/LaunchAgents/app.prpath.pipeline.&lt;script&gt;.plist</code>
+      <div class="text-xs text-muted mt-2">Written by the "enable auto-fire" tile button</div>
+    </div>
+
+    <div class="card rounded-lg p-4">
+      <div class="font-semibold mb-1">🎞 Slide sources</div>
+      <div class="text-xs text-muted mb-3">Pre-rendered 2-slide posts used by each batch</div>
+      <code class="text-xs text-orange break-all">/Users/lancesessions/Developer/PRPathShots/samples/posts_v2/</code>
+      <div class="text-xs text-muted mt-2">18 folders, each with <code>slide_01_issue.png</code> + <code>slide_02_solution.png</code></div>
+    </div>
+
+  </div>
+</section>
+
+{# -- Content Performance — per-slot per-platform engagement breakdown -- #}
+<section id="perf">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">Content Performance</h2>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-muted">
+        {% if platform_perf %}{{ platform_perf|length }} post-platforms{% else %}no data{% endif %}
+      </span>
+      <button class="btn btn-sm"
+              hx-post="/metrics/refresh"
+              hx-swap="none"
+              hx-on::after-request="location.reload()">
+        📊 Pull metrics
+      </button>
+    </div>
+  </div>
+  <div class="card rounded-xl p-5">
+    {% if platform_perf %}
+    <div class="flex items-center gap-2 mb-4 text-xs flex-wrap" id="perf-filters">
+      <span class="text-muted">Platform:</span>
+      <button class="filter-btn pill pill-run" data-filter="platform:all">All</button>
+      <button class="filter-btn pill pill-idle" data-filter="platform:tiktok">TT</button>
+      <button class="filter-btn pill pill-idle" data-filter="platform:instagram">IG</button>
+      <button class="filter-btn pill pill-idle" data-filter="platform:facebook">FB</button>
+      <button class="filter-btn pill pill-idle" data-filter="platform:youtube">YT</button>
+      <span class="text-muted ml-4">Anchor:</span>
+      <button class="filter-btn pill pill-run" data-filter="anchor:all">All</button>
+      {% for a in ['A','B','C','D','E','F','G'] %}
+      <button class="filter-btn pill pill-idle" data-filter="anchor:{{ a }}">{{ a }}</button>
+      {% endfor %}
+    </div>
+    <table class="w-full text-sm">
+      <thead class="text-xs text-muted uppercase tracking-wider border-b border-border">
+        <tr>
+          <th class="text-left py-2">Post</th>
+          <th class="text-left">Anchor</th>
+          <th class="text-left">Day</th>
+          <th class="text-left">Platform</th>
+          <th class="text-right">Views</th>
+          <th class="text-right">Likes</th>
+          <th class="text-right">Comments</th>
+          <th class="text-right text-orange">Saves</th>
+          <th class="text-right">Eng %</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {% for p in platform_perf %}
+        <tr class="perf-row hover:bg-card2/30"
+            data-platform="{{ p.platform }}"
+            data-anchor="{{ p.feature_anchor }}">
+          <td class="py-2.5"><code class="text-orange">{{ p.post_id }}</code></td>
+          <td><span class="pill pill-idle">{{ p.feature_anchor }}</span></td>
+          <td class="text-muted">{{ p.day }}</td>
+          <td class="text-muted uppercase text-[11px]">
+            {% if p.platform == 'tiktok' %}TT{% elif p.platform == 'instagram' %}IG{% elif p.platform == 'facebook' %}FB{% else %}YT{% endif %}
+          </td>
+          <td class="text-right {% if not p.pulled_at %}text-muted{% endif %}">
+            {% if p.pulled_at %}{{ "{:,}".format(p.views) }}{% else %}—{% endif %}
+          </td>
+          <td class="text-right {% if not p.pulled_at %}text-muted{% endif %}">
+            {% if p.pulled_at %}{{ "{:,}".format(p.likes) }}{% else %}—{% endif %}
+          </td>
+          <td class="text-right {% if not p.pulled_at %}text-muted{% endif %}">
+            {% if p.pulled_at %}{{ "{:,}".format(p.comments) }}{% else %}—{% endif %}
+          </td>
+          <td class="text-right font-semibold {% if p.pulled_at %}text-orange{% else %}text-muted{% endif %}">
+            {% if p.pulled_at %}{{ "{:,}".format(p.saves) }}{% else %}—{% endif %}
+          </td>
+          <td class="text-right">
+            {% if p.pulled_at and p.engagement %}
+              <span class="pill {% if p.engagement >= 5 %}pill-ok{% elif p.engagement >= 2 %}pill-warn{% else %}pill-idle{% endif %}">
+                {{ p.engagement }}%
+              </span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <script>
+      (function(){
+        const filters = {platform: 'all', anchor: 'all'};
+        const apply = () => {
+          document.querySelectorAll('.perf-row').forEach(r => {
+            const okP = filters.platform === 'all' || r.dataset.platform === filters.platform;
+            const okA = filters.anchor === 'all' || r.dataset.anchor === filters.anchor;
+            r.style.display = (okP && okA) ? '' : 'none';
+          });
+          document.querySelectorAll('#perf-filters .filter-btn').forEach(b => {
+            const [k, v] = b.dataset.filter.split(':');
+            b.classList.toggle('pill-run', filters[k] === v);
+            b.classList.toggle('pill-idle', filters[k] !== v);
+          });
+        };
+        document.querySelectorAll('#perf-filters .filter-btn').forEach(b => {
+          b.addEventListener('click', () => {
+            const [k, v] = b.dataset.filter.split(':');
+            filters[k] = v;
+            apply();
+          });
+        });
+      })();
+    </script>
+    {% else %}
+      <div class="text-sm text-muted text-center py-10">
+        No LIVE posts yet. Once slots have PFM IDs, rows will appear here — hit
+        <strong>Pull metrics</strong> after your posts have fired to populate views/likes/saves.
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

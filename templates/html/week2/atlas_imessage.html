@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>PRPath Atlas Chat</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+  /* atlas_imessage.html — iMessage-style Atlas chat renderer.
+     URL params:
+       ?bubbles=<base64-encoded JSON array>
+       OR
+       ?b1=user:Thinking%20about%20skipping%20leg%20day
+       &b2=atlas:Oh%20here%20we%20go...
+       &b3=user:...
+       (up to b8)
+       &mode=Toxic%20Mode   header personality label (default: Toxic Mode)
+  */
+  body { background: #0A0A0B; overflow: hidden; }
+
+  .phone {
+    width: 1080px;
+    height: 1350px;
+    background: #0A0A0B;
+    padding: 60px 48px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 4px 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .avatar {
+    width: 72px;
+    height: 72px;
+    background: rgba(255, 107, 53, 0.15);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 36px;
+  }
+  .header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .header-name {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--tier-beginner);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--tier-beginner);
+    box-shadow: 0 0 12px var(--tier-beginner);
+  }
+  .header-ellipsis {
+    margin-left: auto;
+    color: var(--gray);
+    font-size: 28px;
+    letter-spacing: 2px;
+  }
+
+  /* Chat feed */
+  .feed {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 40px 4px 24px;
+    overflow: hidden;
+  }
+
+  .row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    max-width: 85%;
+  }
+  .row.user {
+    align-self: flex-end;
+    justify-content: flex-end;
+  }
+
+  .ai-avatar {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    background: rgba(255, 107, 53, 0.15);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    margin-top: 6px;
+  }
+
+  .bubble {
+    font-size: 28px;
+    line-height: 1.35;
+    padding: 18px 24px;
+    max-width: 720px;
+    word-wrap: break-word;
+  }
+  .bubble.user {
+    background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+    color: #fff;
+    font-weight: 500;
+    border-radius: 22px 22px 6px 22px;
+  }
+  .bubble.atlas {
+    background: var(--bg-card);
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 400;
+    border-radius: 6px 22px 22px 22px;
+  }
+
+  /* Input bar (cosmetic — inactive) */
+  .input-bar {
+    margin-top: auto;
+    display: flex;
+    gap: 14px;
+    padding: 18px 0 4px;
+    align-items: center;
+  }
+  .input-pill {
+    flex: 1;
+    background: var(--bg-card);
+    border-radius: 999px;
+    padding: 22px 28px;
+    font-size: 24px;
+    color: var(--gray);
+  }
+  .send-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 900;
+    font-size: 28px;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="header">
+    <div class="avatar">🧠</div>
+    <div class="header-text">
+      <div class="header-name">Atlas</div>
+      <div class="header-status">
+        <div class="status-dot"></div>
+        <span id="mode">Toxic Mode</span>
+      </div>
+    </div>
+    <div class="header-ellipsis">•••</div>
+  </div>
+
+  <div class="feed" id="feed"></div>
+
+  <div class="input-bar">
+    <div class="input-pill">Ask Atlas anything...</div>
+    <div class="send-btn">↑</div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('mode');
+  if (mode) document.getElementById('mode').textContent = decodeURIComponent(mode);
+
+  // Default seeded conversation — Toxic Mode leg day roast
+  const defaultBubbles = [
+    { who: 'user', text: "Thinking about skipping leg day. Still sore from Monday." },
+    { who: 'atlas', text: "Oh here we go. Monday was four days ago. Your legs are not sore — your ego is." },
+    { who: 'user', text: "lol damn" },
+    { who: 'atlas', text: "You squatted 225 for 6. That's it. Warm up, hit the bar, stop negotiating with me." },
+    { who: 'user', text: "fine fine. what am I doing" },
+    { who: 'atlas', text: "Back squat 5x5 @ 235. RDLs 3x8 @ 185. Leg press, calves, done in 50 min." }
+  ];
+
+  let bubbles = defaultBubbles;
+
+  // Try bubbles base64 JSON first
+  const b64 = params.get('bubbles');
+  if (b64) {
+    try {
+      const decoded = atob(decodeURIComponent(b64));
+      bubbles = JSON.parse(decoded);
+    } catch (e) {}
+  } else {
+    // Fallback: individual b1..b8 params
+    const list = [];
+    for (let i = 1; i <= 8; i++) {
+      const val = params.get('b' + i);
+      if (!val) break;
+      const decoded = decodeURIComponent(val);
+      const idx = decoded.indexOf(':');
+      if (idx > 0) {
+        list.push({
+          who: decoded.slice(0, idx).trim(),
+          text: decoded.slice(idx + 1).trim()
+        });
+      }
+    }
+    if (list.length > 0) bubbles = list;
+  }
+
+  const feed = document.getElementById('feed');
+  bubbles.forEach(b => {
+    const row = document.createElement('div');
+    row.className = 'row ' + (b.who === 'user' ? 'user' : 'atlas');
+
+    if (b.who !== 'user') {
+      const av = document.createElement('div');
+      av.className = 'ai-avatar';
+      av.textContent = '🧠';
+      row.appendChild(av);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble ' + (b.who === 'user' ? 'user' : 'atlas');
+    bubble.textContent = b.text;
+    row.appendChild(bubble);
+
+    feed.appendChild(row);
+  });
+</script>
+</body>
+</html>

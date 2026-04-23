@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}PRPath Content{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          bg:     '#1C1C1E',
+          card:   '#2C2C2E',
+          card2:  '#3A3A3C',
+          border: '#38383A',
+          orange: '#FF6B35',
+          muted:  '#8E8E93',
+          text:   '#F2F2F7',
+          beginner:     '#FF3B30',
+          novice:       '#FF9500',
+          intermediate: '#FFCC00',
+          advanced:     '#34C759',
+          elite:        '#00B0FF',
+          worldclass:   '#AF52DE',
+        },
+        fontFamily: { sans: ['-apple-system','SF Pro Text','system-ui','sans-serif'] },
+      }
+    }
+  }
+</script>
+<style>
+  body { background: #1C1C1E; color: #F2F2F7; }
+  .card { background: #2C2C2E; border: 1px solid #38383A; }
+  .card2 { background: #3A3A3C; border: 1px solid #48484A; }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:2px 10px; border-radius:9999px; font-size:11px; font-weight:600; letter-spacing:0.3px; }
+  .pill-ok   { background:rgba(52,199,89,0.15);  color:#34C759; }
+  .pill-warn { background:rgba(255,204,0,0.15);  color:#FFCC00; }
+  .pill-err  { background:rgba(255,59,48,0.15);  color:#FF3B30; }
+  .pill-run  { background:rgba(0,176,255,0.15);  color:#00B0FF; }
+  .pill-idle { background:rgba(142,142,147,0.15);color:#8E8E93; }
+  .btn  { background:#3A3A3C; border:1px solid #48484A; color:#F2F2F7; padding:6px 12px; border-radius:8px; font-weight:500; font-size:13px; transition:all 0.15s; cursor:pointer; }
+  .btn:hover { background:#48484A; }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .btn-pri { background:#FF6B35; border-color:#FF6B35; color:white; }
+  .btn-pri:hover { background:#FF5722; border-color:#FF5722; }
+  .btn-live { background:#34C759; border-color:#34C759; color:white; }
+  .btn-live:hover { background:#30B857; }
+  .btn-danger { background:#FF3B30; border-color:#FF3B30; color:white; }
+  .btn-sm { padding:3px 8px; font-size:11px; }
+  .slot-image { background:linear-gradient(135deg,#2C2C2E,#1C1C1E); aspect-ratio: 4/5; border-radius:8px; position:relative; overflow:hidden; }
+  .slot-image::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,107,53,0.03) 10px, rgba(255,107,53,0.03) 20px); }
+  code, pre { font-family: 'SF Mono', Menlo, monospace; font-size: 11.5px; }
+  pre { background:#1C1C1E; border:1px solid #38383A; padding:10px; border-radius:6px; max-height:400px; overflow-y:auto; color:#8E8E93; white-space:pre-wrap; }
+  .term-green { color:#34C759; }
+  .term-yellow { color:#FFCC00; }
+  .term-red { color:#FF3B30; }
+  .term-gray { color:#8E8E93; }
+  .tab { padding:8px 14px; color:#8E8E93; border-bottom:2px solid transparent; cursor:pointer; font-weight:500; font-size:13px; }
+  .tab.active { color:#FF6B35; border-bottom-color:#FF6B35; }
+  .tab:hover { color:#F2F2F7; }
+  .glow { box-shadow: 0 0 0 1px rgba(255,107,53,0.3), 0 0 20px rgba(255,107,53,0.15); }
+  .bar { height:4px; background:#3A3A3C; border-radius:2px; overflow:hidden; }
+  .bar-fill { height:100%; background:linear-gradient(90deg, #FF6B35, #FFCC00); }
+  details > summary { list-style:none; cursor:pointer; }
+  details > summary::-webkit-details-marker { display:none; }
+  .htmx-indicator { opacity:0; transition:opacity .2s; }
+  .htmx-request .htmx-indicator { opacity:1; }
+</style>
+</head>
+<body class="font-sans min-h-screen">
+
+<header class="border-b border-border sticky top-0 bg-bg/95 backdrop-blur z-10">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-orange flex items-center justify-center font-bold">P</div>
+      <div>
+        <h1 class="text-lg font-semibold leading-tight">PRPath Content</h1>
+        <p class="text-xs text-muted">localhost:8080 · v0.1</p>
+      </div>
+    </a>
+    <div class="flex items-center gap-3">
+      <div hx-get="/platform-health" hx-trigger="load, every 60s" hx-swap="innerHTML">
+        <span class="text-xs text-muted">loading…</span>
+      </div>
+      <span class="pill pill-ok">● UP</span>
+      <span class="text-xs text-muted">auto-refreshing</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6 space-y-8">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="max-w-7xl mx-auto px-6 py-6 text-xs text-muted flex items-center justify-between border-t border-border mt-8">
+  <div>PRPath Content v0.1 · data @ <code>prpath-content/pipeline.db</code></div>
+  <div>SQLite · FastAPI · no Claude API</div>
+</footer>
+
+</body>
+</html>

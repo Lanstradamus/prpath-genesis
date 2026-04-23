@@ -19,6 +19,21 @@ slides/
 # Test output
 test_output/
 
+# SQLite state (pipeline regenerates on run)
+pipeline.db
+pipeline.db-shm
+pipeline.db-wal
+
+# Ephemeral batch state (run_batch.py regenerates)
+picks/_batches/
+
+# Runtime state
+data/used_post_ids.json
+
+# Dashboard runtime logs (launchd writes these on every run)
+dashboard/*.log
+dashboard/*.error.log
+
 # OS
 .DS_Store
 Thumbs.db

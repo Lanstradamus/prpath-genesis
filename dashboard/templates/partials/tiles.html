@@ -1,0 +1,101 @@
+{% macro tile(s, last) %}
+<div class="card rounded-lg p-4 flex flex-col">
+  <div class="flex items-start justify-between mb-2">
+    <div class="flex-1 min-w-0">
+      <div class="font-semibold truncate">{{ s.display_name }}</div>
+      <div class="text-xs text-muted">{{ s.description }}</div>
+    </div>
+    {% if s.has_live_batch %}
+      <span class="pill pill-ok">LIVE</span>
+    {% elif last %}
+      {% if last.status == 'running' %}<span class="pill pill-run">● running</span>
+      {% elif last.status == 'ok' %}<span class="pill pill-ok">OK</span>
+      {% elif last.status == 'warn' %}<span class="pill pill-warn">WARN</span>
+      {% elif last.status == 'error' %}<span class="pill pill-err">ERR</span>
+      {% else %}<span class="pill pill-idle">—</span>
+      {% endif %}
+    {% else %}
+      <span class="pill pill-idle">never run</span>
+    {% endif %}
+  </div>
+
+  {# Schedule info #}
+  <div class="mt-2 mb-3 py-2 px-2.5 rounded card2 text-xs">
+    <div class="flex items-center justify-between">
+      <div>
+        <span class="text-orange font-medium">{{ s.cron_human }}</span>
+        {% if s.next_delta %}<span class="text-muted">· {{ s.next_delta }}</span>{% endif %}
+      </div>
+      <details class="relative">
+        <summary class="text-muted hover:text-text cursor-pointer select-none">⚙</summary>
+        <div class="absolute right-0 top-5 z-20 card rounded-lg p-3 shadow-lg w-64">
+          <form hx-post="/schedule/{{ s.script }}/cron" hx-swap="none"
+                hx-on::after-request="setTimeout(() => location.reload(), 300)"
+                class="flex flex-col gap-2">
+            <label class="text-xs text-muted">Cron expression</label>
+            <input name="cron_expr" value="{{ s.cron_expr }}"
+                   class="card2 rounded px-2 py-1 text-xs font-mono" />
+            <div class="text-[10px] text-muted leading-tight">
+              <code>m h dom mo dow</code><br>
+              <span class="text-muted">dow: 0=Sun, 1=Mon, ..., 6=Sat</span><br>
+              Examples:<br>
+              <code>0 10 * * 3</code> = Wed 10am<br>
+              <code>0 6 * * 1-6</code> = Mon-Sat 6am<br>
+              <code>0 11 1-7 * 0</code> = 1st Sun 11am
+            </div>
+            <button type="submit" class="btn btn-pri btn-sm">Save</button>
+          </form>
+        </div>
+      </details>
+    </div>
+    <div class="text-muted text-[11px] mt-1">Next: {{ s.next_fire }}</div>
+    {% if s.enabled %}
+      <div class="flex items-center gap-1.5 mt-1.5">
+        <span class="pill pill-ok" style="font-size: 10px;">AUTO ON</span>
+        <button class="text-muted hover:text-text text-[10px] underline"
+                hx-post="/schedule/{{ s.script }}/uninstall-launchd" hx-swap="none"
+                hx-on::after-request="setTimeout(() => location.reload(), 300)">
+          disable
+        </button>
+      </div>
+    {% else %}
+      <div class="flex items-center gap-1.5 mt-1.5">
+        <span class="pill pill-idle" style="font-size: 10px;">manual only</span>
+        <button class="text-muted hover:text-orange text-[10px] underline"
+                hx-post="/schedule/{{ s.script }}/install-launchd" hx-swap="none"
+                hx-on::after-request="setTimeout(() => location.reload(), 300)">
+          enable auto-fire
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="text-xs text-muted mt-auto mb-2">
+    {% if last %}
+      Last run: {{ last.started_12h or last.started_at }}
+      {% if last.exit_code is not none %} · exit {{ last.exit_code }}{% endif %}
+    {% else %}
+      Not yet invoked
+    {% endif %}
+  </div>
+
+  <div class="flex gap-2">
+    <button class="btn btn-pri btn-sm flex-1"
+            hx-post="/run/{{ s.script }}"
+            hx-swap="none"
+            hx-indicator="closest .card"
+            {% if last and last.status == 'running' %}disabled{% endif %}>
+      ▶ Run now
+    </button>
+    {% if last %}
+      <a href="/runs/{{ last.id }}/tail" target="_blank" class="btn btn-sm">📜 Log</a>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+  {% for s in schedules %}
+    {{ tile(s, last_runs[s.script]) }}
+  {% endfor %}
+</div>

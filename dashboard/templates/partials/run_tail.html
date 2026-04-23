@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Run {{ run_id }} — {{ run.script }}{% endblock %}
+{% block content %}
+<section>
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="text-xl font-semibold">
+      Run #{{ run_id }} · <code class="text-orange">{{ run.script }}</code>
+    </h2>
+    <div class="flex items-center gap-2">
+      {% if run.status == 'running' %}<span class="pill pill-run">● running</span>
+      {% elif run.status == 'ok' %}<span class="pill pill-ok">OK</span>
+      {% elif run.status == 'warn' %}<span class="pill pill-warn">WARN</span>
+      {% elif run.status == 'error' %}<span class="pill pill-err">ERR</span>
+      {% endif %}
+      <a href="/" class="btn btn-sm">← Dashboard</a>
+    </div>
+  </div>
+  <div class="card rounded-xl p-4">
+    <div class="flex items-center gap-3 mb-3 text-xs text-muted border-b border-border pb-2">
+      <span>Started: {{ run.started_at }}</span>
+      <span>Finished: {{ run.finished_at or '…' }}</span>
+      {% if run.exit_code is not none %}<span>Exit: {{ run.exit_code }}</span>{% endif %}
+    </div>
+<pre>{{ run.output }}</pre>
+  </div>
+  {% if run.status == 'running' %}
+  <div class="text-xs text-muted mt-3" hx-get="/runs/{{ run_id }}/tail" hx-trigger="every 2s" hx-swap="outerHTML">
+    Auto-refreshing every 2s…
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
