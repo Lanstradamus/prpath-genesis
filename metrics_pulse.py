@@ -1,113 +1,120 @@
 #!/usr/bin/env python3
-"""PRPath evening metrics pulse — shadow-ban / slow-start detection 6-12h after posting.
+"""PRPath metrics pulse — pulls post analytics from Post for Me into SQLite.
+
+One API call per connected social account (4 total — TT/IG/FB/YT) hits
+`/v1/social-account-feeds/{id}?expand=metrics` and gets back the account's
+recent posts with platform-specific engagement numbers attached.
+
+Each matched post (its PFM social_post_id has to correspond to a slot we
+fired) writes one row to the `post_metrics` table. Unknown posts (Cowork
+era, manual posts outside this pipeline) are logged and skipped.
+
+After the pull, a Telegram pulse summary is sent for today's slots — this
+is the shadow-ban / slow-start signal the evening cron cares about.
 
 CLI:
-    python3 metrics_pulse.py [--date YYYY-MM-DD]
-
-Default date is today (America/Chicago). Finds today's batch manifest, pulls
-fresh per-platform metrics for each slot via Post for Me, and classifies each
-platform × slot as HEALTHY / SLOW / DEAD. Flags account-wide issues when 2+
-slots show zero on the same platform. Sends a single Telegram summary — this
-is an end-of-day glance, not an Obsidian-archived report.
+    python3 metrics_pulse.py                 # today's slots
+    python3 metrics_pulse.py --date 2026-04-23
+    python3 metrics_pulse.py --midweek       # Mon+Tue slots (fires Wed 9am)
+    python3 metrics_pulse.py --no-notify     # skip the Telegram send
 """
-
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
-from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-try:
-    from dateutil import parser as dateutil_parser  # type: ignore
-except Exception:  # pragma: no cover
-    dateutil_parser = None  # type: ignore
+import requests
+from dotenv import load_dotenv
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-PICKS_DIR = SCRIPT_DIR / "picks"
-BATCHES_DIR = PICKS_DIR / "_batches"
-NOTIFY_SCRIPT = SCRIPT_DIR / "notify.py"
-POSTFORME_CLIENT = SCRIPT_DIR / "postforme_client.py"
+sys.path.insert(0, str(SCRIPT_DIR))
+from postforme_client import DEFAULT_BRAND, resolve_prpath_accounts  # type: ignore
+from dashboard import db  # type: ignore
 
-# Per-platform thresholds (hours-live → expected minimum views).
-SHADOW_HOURS = 6.0         # after this many hours, 0 views on a platform = flag
-SLOW_HOURS = 3.0           # after this many hours, <50 views = slow start
+ENV_PATH = SCRIPT_DIR / ".env"
+NOTIFY_SCRIPT = SCRIPT_DIR / "notify.py"
+PFM_BASE_URL = "https://api.postforme.dev/v1"
+HTTP_TIMEOUT_SEC = 30
+FEED_LIMIT = 50  # covers ~2 weeks of PRPath fires at 9 slots/batch × 2 batches/week
+
+# Evening-pulse thresholds (hours live → expected minimum views per platform).
+SHADOW_HOURS = 6.0   # 0 views after this is DEAD
+SLOW_HOURS = 3.0     # < SLOW_VIEWS after this is SLOW
 SLOW_VIEWS = 50
-HEALTHY_VIEWS = 100
 
 PLATFORM_LABELS = {
-    "tiktok_business": "TT",
     "tiktok": "TT",
     "instagram": "IG",
-    "youtube": "YT",
     "facebook": "FB",
+    "youtube": "YT",
 }
 
 
-@dataclass
-class SlotPulse:
-    """Per-slot pulse snapshot: platform views + flags."""
-
-    slot_index: int
-    post_id: str
-    feature_anchor: str | None
-    scheduled_at: datetime | None
-    hours_live: float
-    per_platform_views: dict[str, int] = field(default_factory=dict)
-    platform_flags: dict[str, str] = field(default_factory=dict)  # platform → OK|SLOW|DEAD
-
-    @property
-    def total_views(self) -> int:
-        return sum(self.per_platform_views.values())
+# ---------------------------------------------------------------------------
+# PFM feed fetch
+# ---------------------------------------------------------------------------
+def _load_api_key() -> str:
+    load_dotenv(ENV_PATH)
+    import os
+    key = os.environ.get("POSTFORME_API_KEY", "").strip()
+    if not key:
+        print(f"ERROR: POSTFORME_API_KEY missing in {ENV_PATH}", file=sys.stderr)
+        sys.exit(1)
+    return key
 
 
-def notify(msg: str) -> None:
-    """Telegram via notify.py. Non-fatal if it fails."""
+def fetch_account_feed(account_id: str, api_key: str, limit: int = FEED_LIMIT) -> list[dict]:
+    """GET /v1/social-account-feeds/{account_id}?expand=metrics&limit=N.
+
+    Returns the `data` array (list of PlatformPostDto). Empty list on any
+    error — metrics_pulse must never crash a scheduled run.
+    """
+    url = f"{PFM_BASE_URL}/social-account-feeds/{account_id}?expand=metrics&limit={limit}"
     try:
-        subprocess.run(["python3", str(NOTIFY_SCRIPT), msg], check=False, timeout=30)
-    except Exception as e:
-        print(f"[metrics_pulse] notify failed: {e}", file=sys.stderr)
-
-
-def run_pfm(*args: str) -> dict | list | None:
-    """Call postforme_client.py + parse JSON stdout."""
-    try:
-        res = subprocess.run(
-            ["python3", str(POSTFORME_CLIENT), *args],
-            capture_output=True,
-            text=True,
-            timeout=60,
+        resp = requests.get(
+            url,
+            headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},
+            timeout=HTTP_TIMEOUT_SEC,
         )
-    except Exception as e:
-        print(f"[metrics_pulse] PFM call failed ({args}): {e}", file=sys.stderr)
-        return None
-    if res.returncode != 0:
-        print(f"[metrics_pulse] PFM exit {res.returncode} ({args}): {res.stderr.strip()}", file=sys.stderr)
-        return None
+    except requests.RequestException as exc:
+        print(f"[metrics_pulse] PFM feed fetch failed for {account_id}: {exc}", file=sys.stderr)
+        return []
+    if not resp.ok:
+        snippet = (resp.text or "")[:200]
+        print(f"[metrics_pulse] PFM feed HTTP {resp.status_code} for {account_id}: {snippet}", file=sys.stderr)
+        return []
     try:
-        return json.loads(res.stdout)
-    except json.JSONDecodeError:
-        return None
+        body = resp.json()
+    except ValueError:
+        return []
+    return body.get("data") or []
 
 
-def parse_date(s: str) -> date:
-    """Parse YYYY-MM-DD."""
-    return datetime.strptime(s, "%Y-%m-%d").date()
+# ---------------------------------------------------------------------------
+# Slot matching — two strategies, because PFM's feed inconsistently populates
+# social_post_id: IG + YT include it, TT + FB do not. Primary strategy is an
+# exact map (platform, social_post_id) → slot_id. Fallback is a (posted_at
+# within 30 min of scheduled_at, caption first-line match) lookup.
+# ---------------------------------------------------------------------------
+_TZ_NO_COLON_RE = re.compile(r"([+-]\d{2})(\d{2})$")
 
 
-def parse_iso(s: str | None) -> datetime | None:
-    """Parse an ISO timestamp into a UTC-aware datetime. None-safe."""
+def _parse_iso_utc(s: str | None) -> datetime | None:
+    """ISO 8601 → UTC datetime. Handles Z suffix, +0000/+00:00 offsets, and
+    fractional seconds. Python 3.9's fromisoformat doesn't accept tz offsets
+    without a colon (like `+0000`), so we normalize first."""
     if not s:
         return None
+    s = s.replace("Z", "+00:00")
+    s = _TZ_NO_COLON_RE.sub(r"\1:\2", s)
     try:
-        if dateutil_parser is not None:
-            dt = dateutil_parser.isoparse(s)
-        else:
-            dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        dt = datetime.fromisoformat(s)
     except Exception:
         return None
     if dt.tzinfo is None:
@@ -115,235 +122,356 @@ def parse_iso(s: str | None) -> datetime | None:
     return dt.astimezone(timezone.utc)
 
 
-def find_batch_manifest_for_date(target: date) -> tuple[Path, dict] | None:
-    """Locate batch manifest containing a slot for target date."""
-    if not BATCHES_DIR.exists():
-        return None
-    candidates: list[tuple[Path, dict]] = []
-    for p in BATCHES_DIR.glob("*/manifest.json"):
+def build_slot_reverse_index() -> dict[tuple[str, str], str]:
+    """Map (platform, PFM social_post_id) → slot_id. Works for IG + YT."""
+    index: dict[tuple[str, str], str] = {}
+    with db.get_db() as d:
+        rows = d.execute(
+            "SELECT slot_id, pfm_post_ids FROM slots WHERE pfm_post_ids IS NOT NULL AND pfm_post_ids != '{}'"
+        ).fetchall()
+    for r in rows:
         try:
-            manifest = json.loads(p.read_text())
+            blob = json.loads(r["pfm_post_ids"])
         except Exception:
             continue
-        for slot in manifest.get("slots", []):
-            if slot.get("day") == target.isoformat():
-                candidates.append((p, manifest))
-                break
-    if not candidates:
+        for platform, entry in blob.items():
+            pfm_id = entry.get("id") if isinstance(entry, dict) else entry
+            if pfm_id:
+                index[(platform, pfm_id)] = r["slot_id"]
+    return index
+
+
+def build_slot_timing_index() -> dict[str, list[dict]]:
+    """Map platform → [{slot_id, scheduled_at_utc, caption_first_line}, ...].
+
+    Used for TT + FB fallback matching since those feeds don't include
+    social_post_id. A feed post matches a slot when posted_at is within 30
+    min of scheduled_at AND (if the caption has a hook) the hook's first
+    line matches our stored caption's first line.
+    """
+    out: dict[str, list[dict]] = {}
+    with db.get_db() as d:
+        rows = d.execute(
+            "SELECT slot_id, scheduled_at, caption, pfm_post_ids FROM slots "
+            "WHERE pfm_post_ids IS NOT NULL AND pfm_post_ids != '{}'"
+        ).fetchall()
+    for r in rows:
+        try:
+            blob = json.loads(r["pfm_post_ids"] or "{}")
+        except Exception:
+            blob = {}
+        scheduled_utc = _parse_iso_utc(r["scheduled_at"])
+        first_line = (r["caption"] or "").split("\n", 1)[0].strip().lower()
+        for platform in blob:
+            out.setdefault(platform, []).append({
+                "slot_id": r["slot_id"],
+                "scheduled_at_utc": scheduled_utc,
+                "caption_first_line": first_line,
+            })
+    return out
+
+
+def match_by_timing(platform: str, post: dict, timing_idx: dict[str, list[dict]],
+                    tolerance_minutes: int = 30) -> str | None:
+    """Fallback match: within `tolerance_minutes` of scheduled_at + caption
+    first-line tiebreaker. Returns slot_id or None."""
+    posted = _parse_iso_utc(post.get("posted_at"))
+    if not posted:
         return None
-    candidates.sort(key=lambda pair: pair[0].stat().st_mtime, reverse=True)
-    return candidates[0]
+    tolerance = timedelta(minutes=tolerance_minutes)
+    candidates = [
+        s for s in timing_idx.get(platform, [])
+        if s["scheduled_at_utc"] and abs(s["scheduled_at_utc"] - posted) <= tolerance
+    ]
+    if len(candidates) == 1:
+        return candidates[0]["slot_id"]
+    if len(candidates) > 1:
+        # Tiebreaker: feed caption's first line must match our stored caption's first line.
+        # (FB feed keeps the hook; TT feed reduces to hashtags only, so TT tiebreaker rarely fires.)
+        feed_line = (post.get("caption") or "").split("\n", 1)[0].strip().lower()
+        if feed_line:
+            exact = [c for c in candidates if c["caption_first_line"] == feed_line]
+            if len(exact) == 1:
+                return exact[0]["slot_id"]
+    return None
 
 
-def slots_for_date(manifest: dict, target: date) -> list[dict]:
-    """Return manifest slots scheduled for target date, ordered."""
-    slots = [s for s in manifest.get("slots", []) if s.get("day") == target.isoformat()]
-    slots.sort(key=lambda s: s.get("slot_index", s.get("slot", 0)))
-    return slots
+# ---------------------------------------------------------------------------
+# Platform-specific metrics normalization → (views, likes, comments, saves)
+# ---------------------------------------------------------------------------
+def normalize_metrics(platform: str, m: dict) -> tuple[int, int, int, int]:
+    """Reduce PFM's platform-specific metrics DTO to the 4 generic columns.
 
+    Everything else is preserved in the `raw` JSON blob for later analysis.
+    Saves is only meaningfully populated for IG (and TT Business if flagged).
+    """
+    if not m:
+        return 0, 0, 0, 0
+    p = (platform or "").lower()
 
-def read_scheduled(post_id: str) -> dict | None:
-    """Load picks/<post_id>/scheduled.json."""
-    p = PICKS_DIR / post_id / "scheduled.json"
-    if not p.exists():
-        return None
-    try:
-        return json.loads(p.read_text())
-    except Exception:
-        return None
+    if p == "tiktok":
+        # Basic TikTokPostMetricsDto: view_count/like_count/comment_count/share_count
+        # Business DTO: video_views/likes/comments/favorites (saves)
+        views = int(m.get("view_count") or m.get("video_views") or 0)
+        likes = int(m.get("like_count") or m.get("likes") or 0)
+        comments = int(m.get("comment_count") or m.get("comments") or 0)
+        saves = int(m.get("favorites") or 0)  # Business only; basic has no saves
+        return views, likes, comments, saves
 
-
-def extract_pfm_post_ids(scheduled: dict) -> dict[str, str]:
-    """Platform → PFM post_id mapping."""
-    pfm = scheduled.get("post_id_pfm") or scheduled.get("pfm_post_ids") or {}
-    if isinstance(pfm, dict):
-        return {platform: pid for platform, pid in pfm.items() if pid}
-    if isinstance(pfm, str):
-        return {"_all": pfm}
-    pid = scheduled.get("post_id")
-    if isinstance(pid, str):
-        return {"_all": pid}
-    return {}
-
-
-def fetch_metrics(pfm_post_id: str) -> dict | None:
-    """Fetch fresh view/engagement counts for one PFM post."""
-    # TODO: confirm postforme_client.py supports `post-metrics --post-id`
-    return run_pfm("post-metrics", "--post-id", pfm_post_id)  # type: ignore[return-value]
-
-
-def extract_views(platform: str, metrics: dict) -> int:
-    """Pick the canonical view field per platform."""
-    if not metrics:
-        return 0
-    plat = (platform or "").lower()
-    if plat.startswith("facebook"):
-        return int(metrics.get("media_views") or metrics.get("video_views") or metrics.get("views") or 0)
-    if plat.startswith("tiktok"):
-        return int(metrics.get("video_views") or metrics.get("views") or 0)
-    # instagram + youtube + fallback
-    return int(metrics.get("views") or metrics.get("video_views") or 0)
-
-
-def classify_platform(views: int, hours_live: float) -> str:
-    """Tag a single platform reading as OK | SLOW | DEAD."""
-    if hours_live >= SHADOW_HOURS and views == 0:
-        return "DEAD"
-    if hours_live >= SLOW_HOURS and views < SLOW_VIEWS:
-        return "SLOW"
-    if views >= HEALTHY_VIEWS:
-        return "OK"
-    return "OK"
-
-
-def pulse_slot(slot: dict) -> SlotPulse:
-    """Pull fresh metrics for one slot and classify each platform."""
-    post_id = slot.get("post_id") or slot.get("slug") or ""
-    slot_index = int(slot.get("slot_index", slot.get("slot", 0)))
-    feature_anchor = slot.get("feature_anchor") or slot.get("anchor")
-    scheduled = read_scheduled(post_id) or {}
-    scheduled_at = parse_iso(scheduled.get("scheduled_at") or slot.get("scheduled_at"))
-    now = datetime.now(timezone.utc)
-    hours_live = ((now - scheduled_at).total_seconds() / 3600.0) if scheduled_at else 0.0
-
-    pulse = SlotPulse(
-        slot_index=slot_index,
-        post_id=post_id,
-        feature_anchor=feature_anchor,
-        scheduled_at=scheduled_at,
-        hours_live=hours_live,
-    )
-
-    for platform, pfm_pid in extract_pfm_post_ids(scheduled).items():
-        payload = fetch_metrics(pfm_pid) or {}
-        metrics = payload.get("metrics") or payload or {}
-        views = extract_views(platform, metrics)
-        pulse.per_platform_views[platform] = views
-        pulse.platform_flags[platform] = classify_platform(views, hours_live)
-
-    return pulse
-
-
-def account_wide_flags(pulses: list[SlotPulse]) -> list[str]:
-    """Return list of 'FB slow start across all 3 slots'-style flags."""
-    flags: list[str] = []
-    platforms: set[str] = set()
-    for pulse in pulses:
-        platforms.update(pulse.per_platform_views.keys())
-    for platform in sorted(platforms):
-        zero_count = sum(1 for p in pulses if p.per_platform_views.get(platform, 0) == 0
-                         and p.hours_live >= SHADOW_HOURS)
-        slow_count = sum(
-            1 for p in pulses
-            if 0 < p.per_platform_views.get(platform, 0) < SLOW_VIEWS and p.hours_live >= SLOW_HOURS
+    if p == "instagram":
+        return (
+            int(m.get("views") or 0),
+            int(m.get("likes") or 0),
+            int(m.get("comments") or 0),
+            int(m.get("saved") or 0),
         )
-        label = PLATFORM_LABELS.get(platform, platform)
-        if zero_count >= 2:
-            flags.append(f"{label} possible account-wide issue ({zero_count} slots at 0)")
-        elif slow_count >= len(pulses) and len(pulses) > 0:
-            flags.append(f"{label} slow start across all {len(pulses)} slots")
-    return flags
 
+    if p == "facebook":
+        # Views column = reach (unique people who saw the post). FB's video_views
+        # is only 3+-second plays and understates reality; `reach` is what MBS
+        # surfaces to the user and is the most comparable to TT/IG/YT views.
+        # FB has no saves field; reactions_total stands in for likes.
+        return (
+            int(m.get("reach") or m.get("video_views") or m.get("media_views") or 0),
+            int(m.get("reactions_total") or 0),
+            int(m.get("comments") or 0),
+            0,
+        )
 
-def format_pulse_summary(pulses: list[SlotPulse], target: date, wide_flags: list[str]) -> str:
-    """Compose the Telegram summary string."""
-    # Per-platform totals.
-    totals: dict[str, int] = {}
-    for pulse in pulses:
-        for platform, views in pulse.per_platform_views.items():
-            totals[platform] = totals.get(platform, 0) + views
+    if p == "youtube":
+        return (
+            int(m.get("views") or 0),
+            int(m.get("likes") or 0),
+            int(m.get("comments") or 0),
+            0,  # YT has no saves; subscribersGained lives in raw
+        )
 
-    def render_n(n: int) -> str:
-        if n >= 1000:
-            return f"{n / 1000:.1f}K".rstrip("0").rstrip(".")
-        return str(n)
-
-    # Pick severity indicator.
-    has_dead = any("DEAD" in p.platform_flags.values() for p in pulses)
-    has_slow = any("SLOW" in p.platform_flags.values() for p in pulses)
-    emoji = "\U0001F534" if has_dead or any("account-wide" in f for f in wide_flags) else (
-        "\U0001F7E1" if has_slow or wide_flags else "\u2705"
+    # Unknown platform — best-effort
+    return (
+        int(m.get("views") or m.get("view_count") or 0),
+        int(m.get("likes") or m.get("like_count") or 0),
+        int(m.get("comments") or m.get("comment_count") or 0),
+        0,
     )
 
-    # Build platform summary line ordered TT/IG/YT/FB.
-    order = ["tiktok_business", "tiktok", "instagram", "youtube", "facebook"]
-    seen: set[str] = set()
-    parts = []
-    for platform in order:
-        if platform in totals and platform not in seen:
-            label = PLATFORM_LABELS.get(platform, platform)
-            parts.append(f"{label}: {render_n(totals[platform])}")
-            seen.add(platform)
-    for platform in totals:
-        if platform not in seen:
-            parts.append(f"{PLATFORM_LABELS.get(platform, platform)}: {render_n(totals[platform])}")
 
-    platform_line = " | ".join(parts) if parts else "no data"
+# ---------------------------------------------------------------------------
+# Pull + persist
+# ---------------------------------------------------------------------------
+def pull_and_persist(api_key: str) -> dict[str, Any]:
+    """Hit all 4 account feeds, persist matched posts to post_metrics.
 
-    # Top platform + top slot.
-    top_platform: str | None = None
-    top_views = 0
-    for platform, total in totals.items():
-        if total > top_views:
-            top_platform = platform
-            top_views = total
-    top_slot = max(pulses, key=lambda p: p.total_views, default=None)
+    Returns a summary dict for logging + the evening pulse message.
+    """
+    accounts = resolve_prpath_accounts(api_key, DEFAULT_BRAND)
+    reverse_idx = build_slot_reverse_index()
+    timing_idx = build_slot_timing_index()
+
+    summary: dict[str, Any] = {
+        "persisted": 0,
+        "unmatched": 0,
+        "per_platform": {},  # platform → {persisted, unmatched, total_views, matched_by_timing}
+        "per_slot": {},      # slot_id → {platform → (views, likes, comments, saves)}
+    }
+
+    for platform, account_id in accounts.items():
+        platform_stats = {"persisted": 0, "unmatched": 0, "total_views": 0, "matched_by_timing": 0}
+        posts = fetch_account_feed(account_id, api_key)
+        for post in posts:
+            # Strategy 1: exact (platform, social_post_id) match (IG + YT)
+            sp_id = post.get("social_post_id")
+            slot_id = reverse_idx.get((platform, sp_id)) if sp_id else None
+            # Strategy 2: timing + caption tiebreaker (TT + FB)
+            if not slot_id:
+                slot_id = match_by_timing(platform, post, timing_idx)
+                if slot_id:
+                    platform_stats["matched_by_timing"] += 1
+            if not slot_id:
+                platform_stats["unmatched"] += 1
+                continue
+            metrics = post.get("metrics") or {}
+            views, likes, comments, saves = normalize_metrics(platform, metrics)
+            db.record_post_metrics(
+                slot_id=slot_id,
+                platform=platform,
+                views=views,
+                likes=likes,
+                comments=comments,
+                saves=saves,
+                raw=json.dumps(metrics)[:4000],
+            )
+            platform_stats["persisted"] += 1
+            platform_stats["total_views"] += views
+            summary["per_slot"].setdefault(slot_id, {})[platform] = (views, likes, comments, saves)
+
+        summary["per_platform"][platform] = platform_stats
+        summary["persisted"] += platform_stats["persisted"]
+        summary["unmatched"] += platform_stats["unmatched"]
+
+    return summary
+
+
+# ---------------------------------------------------------------------------
+# Telegram pulse summary
+# ---------------------------------------------------------------------------
+def _tz_today() -> date:
+    """Today's date in America/Chicago — matches how we schedule slots."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("America/Chicago")).date()
+    except Exception:
+        return date.today()
+
+
+def _render_number(n: int) -> str:
+    if n >= 1000:
+        v = n / 1000
+        return (f"{v:.1f}K" if v < 10 else f"{v:.0f}K")
+    return str(n)
+
+
+def slots_for_dates(target_dates: list[str]) -> list[dict]:
+    """Return slots scheduled for any of the given YYYY-MM-DD days."""
+    if not target_dates:
+        return []
+    placeholders = ",".join("?" for _ in target_dates)
+    with db.get_db() as d:
+        rows = d.execute(
+            f"SELECT slot_id, slot_index, post_id, feature_anchor, day, scheduled_at, pfm_post_ids "
+            f"FROM slots WHERE day IN ({placeholders}) ORDER BY scheduled_at",
+            target_dates,
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def hours_live(scheduled_at_iso: str) -> float:
+    try:
+        dt = datetime.fromisoformat(scheduled_at_iso).astimezone(timezone.utc)
+    except Exception:
+        return 0.0
+    return (datetime.now(timezone.utc) - dt).total_seconds() / 3600.0
+
+
+def build_pulse_summary(target_dates: list[str], pull_summary: dict) -> str:
+    """Compose the Telegram message for today (or Mon+Tue) slots."""
+    slots = slots_for_dates(target_dates)
+    if not slots:
+        return f"PRPATH PULSE ✅ {target_dates[0]} — no slots for that date"
+
+    # Per-platform totals across the target slots, using metrics fresh from
+    # this pull (summary["per_slot"]) as primary, falling back to DB MAX.
+    per_platform_views: dict[str, int] = {}
+    slot_lines: list[str] = []
+    flags: list[str] = []
+
+    for slot in slots:
+        slot_id = slot["slot_id"]
+        metrics = pull_summary["per_slot"].get(slot_id, {})
+        hrs = hours_live(slot["scheduled_at"])
+        total_views = 0
+        platform_flags: list[str] = []
+        for platform in ("tiktok", "instagram", "facebook", "youtube"):
+            v = metrics.get(platform, (0, 0, 0, 0))[0] if platform in metrics else 0
+            per_platform_views[platform] = per_platform_views.get(platform, 0) + v
+            total_views += v
+            if hrs >= SHADOW_HOURS and v == 0 and platform in metrics:
+                platform_flags.append(f"{PLATFORM_LABELS[platform]} DEAD")
+            elif hrs >= SLOW_HOURS and 0 < v < SLOW_VIEWS:
+                platform_flags.append(f"{PLATFORM_LABELS[platform]} SLOW")
+        anchor = f"[{slot.get('feature_anchor')}]" if slot.get("feature_anchor") else ""
+        tag_str = f" — {', '.join(platform_flags)}" if platform_flags else ""
+        slot_lines.append(
+            f"s{slot['slot_index']}{anchor} {slot['post_id']}: "
+            f"{_render_number(total_views)} ({hrs:.1f}h){tag_str}"
+        )
+
+    # Account-wide flags: 2+ slots at 0 on the same platform after SHADOW_HOURS
+    for platform in ("tiktok", "instagram", "facebook", "youtube"):
+        zero_count = sum(
+            1 for slot in slots
+            if pull_summary["per_slot"].get(slot["slot_id"], {}).get(platform, (0,))[0] == 0
+            and hours_live(slot["scheduled_at"]) >= SHADOW_HOURS
+        )
+        if zero_count >= 2:
+            flags.append(f"{PLATFORM_LABELS[platform]} account-wide ({zero_count} slots at 0)")
+
+    # Emoji severity
+    if flags or any("DEAD" in line for line in slot_lines):
+        emoji = "🔴"
+    elif any("SLOW" in line for line in slot_lines):
+        emoji = "🟡"
+    else:
+        emoji = "✅"
+
+    header_range = (target_dates[0] if len(target_dates) == 1
+                    else f"{target_dates[0]}..{target_dates[-1]}")
+    platform_line = " | ".join(
+        f"{PLATFORM_LABELS[p]}: {_render_number(per_platform_views.get(p, 0))}"
+        for p in ("tiktok", "instagram", "facebook", "youtube")
+    )
 
     lines = [
-        f"PRPATH PULSE {emoji} {target.isoformat()}",
+        f"PRPATH PULSE {emoji} {header_range}",
         platform_line,
     ]
-    if top_slot and top_platform and top_slot.total_views > 0:
-        lines.append(
-            f"Top: {top_slot.post_id} {render_n(top_slot.total_views)} "
-            f"({PLATFORM_LABELS.get(top_platform, top_platform)})"
-        )
-    if wide_flags:
-        lines.append("Flag: " + "; ".join(wide_flags))
-    # Per-slot detail tail.
-    for pulse in pulses:
-        tags = []
-        for platform, flag in pulse.platform_flags.items():
-            if flag != "OK":
-                tags.append(f"{PLATFORM_LABELS.get(platform, platform)} {flag}")
-        anchor = f"[{pulse.feature_anchor}]" if pulse.feature_anchor else ""
-        tag_str = f" — {', '.join(tags)}" if tags else ""
-        lines.append(
-            f"s{pulse.slot_index}{anchor} {pulse.post_id}: "
-            f"{render_n(pulse.total_views)} ({pulse.hours_live:.1f}h){tag_str}"
-        )
+    if flags:
+        lines.append("Flag: " + "; ".join(flags))
+    lines.extend(slot_lines)
     return "\n".join(lines)
 
 
+def notify(msg: str) -> None:
+    """Telegram via notify.py. Non-fatal if it fails."""
+    try:
+        subprocess.run(["python3", str(NOTIFY_SCRIPT), msg], check=False, timeout=30)
+    except Exception as exc:
+        print(f"[metrics_pulse] notify failed: {exc}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 def main() -> int:
-    """Entry point — returns 0 on success."""
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--date", help="Target date YYYY-MM-DD (default: today)")
+    ap.add_argument("--date", help="Target date YYYY-MM-DD (default: today CT)")
+    ap.add_argument("--midweek", action="store_true",
+                    help="Pulse Mon+Tue slots (Wed 9am cron)")
+    ap.add_argument("--no-notify", action="store_true",
+                    help="Skip Telegram send (useful for smoke tests)")
     args = ap.parse_args()
 
-    target = parse_date(args.date) if args.date else date.today()
+    api_key = _load_api_key()
+    db.ensure_schema()
 
-    found = find_batch_manifest_for_date(target)
-    if found is None:
-        msg = f"PRPATH PULSE \u2705 {target.isoformat()} — no batch active for {target.isoformat()}"
-        print(msg)
+    # Pull + persist (same for both modes — we always ingest all fresh metrics)
+    pull_summary = pull_and_persist(api_key)
+
+    print(f"[metrics_pulse] persisted={pull_summary['persisted']} "
+          f"unmatched={pull_summary['unmatched']}")
+    for platform, stats in pull_summary["per_platform"].items():
+        print(f"  {platform}: {stats}")
+
+    # Determine which slots to summarize
+    if args.midweek:
+        today = _tz_today()
+        # Mon+Tue of current week (fires Wed 9am)
+        # Weekday: Mon=0, Tue=1, Wed=2
+        wd = today.weekday()
+        mon = today - timedelta(days=wd)
+        tue = mon + timedelta(days=1)
+        target_dates = [mon.isoformat(), tue.isoformat()]
+    elif args.date:
+        target_dates = [args.date]
+    else:
+        target_dates = [_tz_today().isoformat()]
+
+    msg = build_pulse_summary(target_dates, pull_summary)
+    print()
+    print(msg)
+
+    if not args.no_notify:
         notify(msg)
-        return 0
 
-    manifest_path, manifest = found
-    slots = slots_for_date(manifest, target)
-    if not slots:
-        msg = f"PRPATH PULSE \u2705 {target.isoformat()} — no slots for {target.isoformat()}"
-        print(msg)
-        notify(msg)
-        return 0
-
-    print(f"[metrics_pulse] batch: {manifest_path}")
-    pulses = [pulse_slot(s) for s in slots]
-    wide_flags = account_wide_flags(pulses)
-    summary = format_pulse_summary(pulses, target, wide_flags)
-    print(summary)
-    notify(summary)
     return 0
 
 
