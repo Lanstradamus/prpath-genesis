@@ -657,6 +657,26 @@ async def slide(path: str) -> FileResponse:
     return FileResponse(resolved)
 
 
+@app.get("/media")
+async def media(path: str) -> FileResponse:
+    """Serve a rendered video (media_kind='video' slots). Path must live inside
+    an allowlisted render directory — override MEDIA_ALLOWED_ROOTS at deploy
+    time on LaunchLens to point at the Remotion out dir."""
+    import os
+    roots_env = os.environ.get("MEDIA_ALLOWED_ROOTS", "").strip()
+    if roots_env:
+        allowed_roots = [Path(p).resolve() for p in roots_env.split(":") if p]
+    else:
+        # Default: same PRPathShots root so PRPath's stitched MP4s work.
+        allowed_roots = [Path("/Users/lancesessions/Developer/PRPathShots/samples").resolve()]
+    resolved = Path(path).resolve()
+    if not any(str(resolved).startswith(str(r)) for r in allowed_roots):
+        raise HTTPException(403, "path outside allowed sandbox")
+    if not resolved.is_file():
+        raise HTTPException(404, "media not found")
+    return FileResponse(resolved)
+
+
 # ---------------------------------------------------------------------------
 # Health / version
 # ---------------------------------------------------------------------------

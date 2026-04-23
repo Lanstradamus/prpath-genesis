@@ -205,22 +205,33 @@
         </summary>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div>
-            <div class="text-xs text-muted mb-1.5">Slide 1 — hook</div>
-            {% if slot.slide_01_path %}
-              <img src="/slide?path={{ slot.slide_01_path }}" class="rounded-lg w-full">
-            {% else %}
-              <div class="slot-image"></div>
-            {% endif %}
-          </div>
-          <div>
-            <div class="text-xs text-muted mb-1.5">Slide 2 — solution</div>
-            {% if slot.slide_02_path %}
-              <img src="/slide?path={{ slot.slide_02_path }}" class="rounded-lg w-full">
-            {% else %}
-              <div class="slot-image"></div>
-            {% endif %}
-          </div>
+          {% if slot.media_kind == 'video' %}
+            <div class="md:col-span-2">
+              <div class="text-xs text-muted mb-1.5">Video preview</div>
+              {% if slot.media_paths and slot.media_paths[0] %}
+                <video src="/media?path={{ slot.media_paths[0] }}" class="rounded-lg w-full" controls muted></video>
+              {% else %}
+                <div class="slot-image"></div>
+              {% endif %}
+            </div>
+          {% else %}
+            <div>
+              <div class="text-xs text-muted mb-1.5">Slide 1 — hook</div>
+              {% if slot.slide_01_path %}
+                <img src="/slide?path={{ slot.slide_01_path }}" class="rounded-lg w-full">
+              {% else %}
+                <div class="slot-image"></div>
+              {% endif %}
+            </div>
+            <div>
+              <div class="text-xs text-muted mb-1.5">Slide 2 — solution</div>
+              {% if slot.slide_02_path %}
+                <img src="/slide?path={{ slot.slide_02_path }}" class="rounded-lg w-full">
+              {% else %}
+                <div class="slot-image"></div>
+              {% endif %}
+            </div>
+          {% endif %}
           <div>
             <div class="text-xs text-muted mb-1.5">Caption</div>
             <form hx-post="/batches/{{ batch.batch_id }}/slot/{{ slot.slot_id }}/caption" hx-swap="none" class="mb-2">

@@ -22,12 +22,22 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
 
 import requests
 from dotenv import load_dotenv
+
+_URL_RE = re.compile(r"https?://\S+")
+
+
+def _strip_url_lines(text: str) -> str:
+    """Remove any line containing a URL. TikTok captions can't render links."""
+    if not text:
+        return text
+    return "\n".join(ln for ln in text.splitlines() if not _URL_RE.search(ln)).strip()
 
 # ---------------------------------------------------------------------------
 # Feature-anchor → Custom Product Page URL (App Store)
@@ -338,33 +348,38 @@ def _schedule_single_slot(
     api_key: str,
     live: bool,
 ) -> dict[str, Any]:
-    """Schedule one slot across TikTok + IG + FB (carousel) and YT (stitched video).
+    """Schedule one slot across TikTok + IG + FB + YT.
 
-    Returns a dict with per-platform PFM post IDs on success, or error details.
+    Media comes from a MediaRenderer (see media_renderer.py):
+      - media_kind='carousel' → TikTok gets a photo carousel, reels use a
+        stitched MP4 (PRPath's flow).
+      - media_kind='video'    → all 4 platforms use a single MP4 (LaunchLens).
+
+    Returns per-platform PFM post IDs on success, or error details.
     """
+    import sys as _sys
+    _sys.path.insert(0, str(SCRIPT_DIR))
+    from media_renderer import renderer_for_slot  # type: ignore
+
     slot_id = slot["slot_id"]
     post_id = slot.get("post_id") or slot_id
     scheduled_at = slot.get("scheduled_at")
     feature_anchor = (slot.get("feature_anchor") or "").upper()
     caption = apply_cpp_url(slot.get("caption") or "", feature_anchor)
+    media_kind = (slot.get("media_kind") or "carousel").lower()
 
-    slide_01 = Path(slot["slide_01_path"]).resolve()
-    slide_02 = Path(slot["slide_02_path"]).resolve()
-    if not slide_01.is_file() or not slide_02.is_file():
-        return {
-            "ok": False,
-            "slot": slot_id,
-            "error": f"slides missing: {slide_01} or {slide_02}",
-        }
-
-    slides_dir = slide_01.parent
     post_ids: dict[str, str | None] = {}
     errors: list[str] = []
     only_tiktok = os.environ.get("PFM_ONLY_TIKTOK", "").lower() in ("1", "true", "yes")
     only_fb = os.environ.get("PFM_ONLY_FB", "").lower() in ("1", "true", "yes")
 
-    # ---- DRY-RUN short-circuit: no uploads, no POSTs
+    # ---- DRY-RUN short-circuit: no rendering, no uploads, no POSTs
     if not live:
+        tt_plan = (
+            {"kind": "photo_carousel", "assets": 2, "music": "TikTok native auto-add"}
+            if media_kind == "carousel"
+            else {"kind": "single_video", "music": "baked (Remotion)"}
+        )
         return {
             "ok": True,
             "slot": slot_id,
@@ -373,81 +388,92 @@ def _schedule_single_slot(
             "scheduled_at": scheduled_at,
             "feature_anchor": feature_anchor,
             "caption": caption,
-            "slides": [str(slide_01), str(slide_02)],
+            "media_kind": media_kind,
             "accounts": {k: accounts.get(k) for k in ("tiktok", "instagram", "facebook", "youtube")},
             "platforms_planned": {
-                "tiktok": {"kind": "photo_carousel", "assets": 2, "music": "TikTok native auto-add"},
-                "youtube_short": {"kind": "stitched_video", "duration": "8s", "music": "random YT-safe"},
-                "instagram_reel": {"kind": "stitched_video", "duration": "8s", "music": "random YT-safe"},
-                "facebook_reel": {"kind": "stitched_video", "duration": "8s", "music": "random YT-safe"},
+                "tiktok": tt_plan,
+                "youtube_short": {"kind": "single_video"},
+                "instagram_reel": {"kind": "single_video"},
+                "facebook_reel": {"kind": "single_video"},
             },
         }
 
-    # ---- LIVE: stitch video once + upload, upload slides for TT, then post to 4 platforms
-    # Stitch + upload video (used by YT, IG, FB) — skipped in TikTok-only test mode
-    video_url = None
-    if not only_tiktok:
-        try:
-            video_out = slides_dir / f"{post_id}_short.mp4"
-            stitch_slides_to_video(slides_dir, video_out)
-            video_url = upload_media(video_out, api_key, "video/mp4")
-        except Exception as exc:
-            return {"ok": False, "slot": slot_id, "error": f"video stitch/upload failed: {exc}"}
+    # ---- LIVE: render, upload, post.
+    try:
+        rendered = renderer_for_slot(slot).render_for_slot(slot)
+    except Exception as exc:
+        return {"ok": False, "slot": slot_id, "error": f"media render failed: {exc}"}
 
-    # Upload slides for TikTok carousel — skipped in FB-only mode (no TT call)
-    slide_01_url = None
-    slide_02_url = None
-    if not only_fb:
+    # Upload video once; re-use URL across IG/FB/YT and (if no carousel) TikTok.
+    video_url: str | None = None
+    if rendered.video_mp4 and not only_tiktok:
         try:
-            slide_01_url = upload_media(slide_01, api_key, "image/png")
-            slide_02_url = upload_media(slide_02, api_key, "image/png")
+            video_url = upload_media(rendered.video_mp4, api_key, "video/mp4")
+        except Exception as exc:
+            return {"ok": False, "slot": slot_id, "error": f"video upload failed: {exc}"}
+
+    # Upload carousel PNGs for TikTok. Skipped in FB-only re-fire mode.
+    carousel_urls: list[str] = []
+    if rendered.carousel_pngs and not only_fb:
+        try:
+            for png in rendered.carousel_pngs:
+                carousel_urls.append(upload_media(png, api_key, "image/png"))
         except Exception as exc:
             return {"ok": False, "slot": slot_id, "error": f"slide upload failed: {exc}"}
 
-    carousel_media = [{"url": slide_01_url}, {"url": slide_02_url}] if slide_01_url else []
     video_media = [{"url": video_url}] if video_url else []
     first_line = caption.split("\n", 1)[0][:100]
 
-    # 1) TikTok photo carousel — explicit title + disable PFM auto_add_music.
-    # Fix 2026-04-22 after first live test showed duplicated title/description
-    # and two audio tracks. Root cause: PFM defaulted title=caption (so both
-    # fields showed identical text) and layered its own music on top of
-    # TikTok's native auto-track. Passing short title + auto_add_music=False
-    # separates the two text fields and lets TikTok handle the sound alone.
+    # 1) TikTok. Carousel (PRPath) or single video (LaunchLens).
+    # 2026-04-22 TT payload bugfix (still applies): passing only `caption`
+    # duplicated title/description; auto_add_music=True layered on top of
+    # TikTok's own native track. Locked fix for carousels: explicit short
+    # title, URL-stripped description, auto_add_music=True. For videos with
+    # baked audio (Remotion), auto_add_music must be False so TT doesn't
+    # layer a second track on top.
     tiktok_id = None if only_fb else accounts.get("tiktok")
-    tiktok_title = first_line.rstrip(" 💪")[:90]  # short hook, no trailing emoji
-    # TikTok description: drop the CPP URL line (bio link covers that). Keep
-    # hashtags. Lance saw the raw apps.apple.com URL looked ugly on TikTok.
+    tiktok_title = first_line.rstrip(" 💪")[:90]
     _desc_raw = (caption.split("\n", 1)[1].lstrip("\n") if "\n" in caption else caption)
-    tiktok_description = "\n".join(
-        ln for ln in _desc_raw.splitlines() if "apps.apple.com" not in ln
-    ).strip()
+    tiktok_description = _strip_url_lines(_desc_raw)
     if tiktok_id:
-        try:
-            body = {
-                "caption": tiktok_description,
-                "social_accounts": [tiktok_id],
-                "media": carousel_media,
-                "platform_configurations": {
-                    "tiktok": {
-                        "title": tiktok_title,
-                        "privacy_status": "public",
-                        "auto_add_music": True,
-                    }
-                },
-            }
-            if scheduled_at:
-                body["scheduled_at"] = scheduled_at
-            resp = _http_post("/social-posts", body, api_key)
-            post_ids["tiktok"] = resp.get("id") or resp.get("post_id_pfm")
-        except SystemExit:
-            errors.append("tiktok POST failed (see stderr above)")
-        except Exception as exc:
-            errors.append(f"tiktok: {exc}")
+        if carousel_urls:
+            tt_media = [{"url": u} for u in carousel_urls]
+            tt_auto_music = True   # photo carousel → let TikTok add its native track
+        elif video_url:
+            tt_media = [{"url": video_url}]
+            tt_auto_music = False  # video already has baked music — don't layer
+        else:
+            tt_media = []
+            tt_auto_music = True
+
+        if tt_media:
+            try:
+                body = {
+                    "caption": tiktok_description,
+                    "social_accounts": [tiktok_id],
+                    "media": tt_media,
+                    "platform_configurations": {
+                        "tiktok": {
+                            "title": tiktok_title,
+                            "privacy_status": "public",
+                            "auto_add_music": tt_auto_music,
+                        }
+                    },
+                }
+                if scheduled_at:
+                    body["scheduled_at"] = scheduled_at
+                resp = _http_post("/social-posts", body, api_key)
+                post_ids["tiktok"] = resp.get("id") or resp.get("post_id_pfm")
+            except SystemExit:
+                errors.append("tiktok POST failed (see stderr above)")
+            except Exception as exc:
+                errors.append(f"tiktok: {exc}")
+        else:
+            errors.append("tiktok: renderer produced no media")
     elif not only_fb:
         errors.append("tiktok account not connected for brand")
 
-    # 2) Instagram + Facebook Reels — stitched MP4 (native auto-loops).
+    # 2) Instagram + Facebook Reels — bundled into one PFM call.
     # FB-only mode (PFM_ONLY_FB=1) skips IG so a re-fire doesn't double-post IG.
     if only_tiktok:
         ig_fb_ids = []
@@ -477,7 +503,7 @@ def _schedule_single_slot(
     elif not only_tiktok and not only_fb:
         errors.append("ig/fb accounts not connected for brand")
 
-    # 3) YouTube Short — same MP4, title set from hook line, public privacy
+    # 3) YouTube Short — same MP4, title set from hook line, public privacy.
     yt_id = None if (only_tiktok or only_fb) else accounts.get("youtube")
     if yt_id:
         try:
@@ -501,19 +527,16 @@ def _schedule_single_slot(
         errors.append("youtube account not connected for brand")
 
     # Persist PFM IDs back to SQLite so the dashboard can render a LIVE Posts view
-    # without re-fetching from PFM. Merges into any existing per-slot record.
+    # without re-fetching from PFM. Best-effort — never blocks a successful fire.
     if post_ids:
         try:
-            import sys as _sys
-            _sys.path.insert(0, str(SCRIPT_DIR))
             from dashboard import db as _db  # type: ignore
             _db.set_slot_pfm_ids(slot_id, post_ids, scheduled_at=scheduled_at)
         except Exception as exc:
-            # Dashboard write-back is best-effort — never block a successful fire
             print(f"[warn] dashboard sync failed: {exc}", file=sys.stderr)
 
     return {
-        "ok": not errors or bool(post_ids),  # partial success still counts
+        "ok": not errors or bool(post_ids),
         "slot": slot_id,
         "status": "scheduled" if post_ids else "failed",
         "post_id_pfm": post_ids,
