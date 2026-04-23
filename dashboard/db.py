@@ -62,17 +62,15 @@ CREATE TABLE IF NOT EXISTS slots (
     scheduled_at     TEXT    NOT NULL,
     post_id          TEXT    NOT NULL,
     feature_anchor   TEXT    NOT NULL,
-    slide_01_path    TEXT,                          -- NULL for video-only slots
-    slide_02_path    TEXT,                          -- NULL for video-only slots
+    slide_01_path    TEXT    NOT NULL,
+    slide_02_path    TEXT    NOT NULL,
     caption          TEXT,
     hashtags         TEXT    NOT NULL DEFAULT '',
     approved         INTEGER NOT NULL DEFAULT 0,   -- user clicked approve
     approved_at      TEXT,
     pfm_post_ids     TEXT,                          -- JSON dict {platform: pfm_id}
     status           TEXT    NOT NULL DEFAULT 'drafted',  -- drafted|approved|scheduled|live|failed
-    error            TEXT,
-    media_kind       TEXT    NOT NULL DEFAULT 'carousel', -- carousel|video
-    media_paths      TEXT                           -- JSON array for video_kind=video
+    error            TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_slots_batch ON slots(batch_id, slot_index);
@@ -136,24 +134,7 @@ def get_db() -> Iterator[sqlite3.Connection]:
 def ensure_schema() -> None:
     with get_db() as db:
         db.executescript(SCHEMA)
-        _migrate_slot_media_columns(db)
         _seed_schedule_defaults(db)
-
-
-def _migrate_slot_media_columns(db: sqlite3.Connection) -> None:
-    """Idempotent migration: add media_kind + media_paths to `slots` if missing.
-
-    Existing PRPath DBs were created before the renderer split. CREATE TABLE
-    IF NOT EXISTS won't patch older tables, so we ALTER in-place. Existing
-    rows default to media_kind='carousel' (back-compat with slide_01/02_path).
-    """
-    cols = {row["name"] for row in db.execute("PRAGMA table_info(slots)")}
-    if "media_kind" not in cols:
-        db.execute(
-            "ALTER TABLE slots ADD COLUMN media_kind TEXT NOT NULL DEFAULT 'carousel'"
-        )
-    if "media_paths" not in cols:
-        db.execute("ALTER TABLE slots ADD COLUMN media_paths TEXT")
 
 
 def _seed_schedule_defaults(db: sqlite3.Connection) -> None:
@@ -287,32 +268,17 @@ def upsert_batch_from_manifest(manifest_path: Path) -> None:
             ),
         )
         for i, slot in enumerate(data.get("slots", [])):
-            # Detect media_kind: explicit field wins, else fall back to
-            # slide_01/02 presence (PRPath manifests) vs media_paths (LaunchLens).
-            explicit_kind = (slot.get("media_kind") or "").lower()
-            if explicit_kind in ("carousel", "video"):
-                media_kind = explicit_kind
-            elif slot.get("slide_01_path") and slot.get("slide_02_path"):
-                media_kind = "carousel"
-            elif slot.get("media_paths"):
-                media_kind = "video"
-            else:
-                media_kind = "carousel"  # conservative default
-            media_paths_json = json.dumps(slot.get("media_paths") or []) if media_kind == "video" else None
             db.execute(
                 """
                 INSERT INTO slots (
                     slot_id, batch_id, slot_index, day, scheduled_at, post_id,
-                    feature_anchor, slide_01_path, slide_02_path, caption, hashtags, status,
-                    media_kind, media_paths
+                    feature_anchor, slide_01_path, slide_02_path, caption, hashtags, status
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'drafted', ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'drafted')
                 ON CONFLICT(slot_id) DO UPDATE SET
                     scheduled_at  = excluded.scheduled_at,
                     caption       = COALESCE(slots.caption, excluded.caption),
-                    hashtags      = excluded.hashtags,
-                    media_kind    = excluded.media_kind,
-                    media_paths   = excluded.media_paths
+                    hashtags      = excluded.hashtags
                 """,
                 (
                     slot["slot_id"],
@@ -322,12 +288,10 @@ def upsert_batch_from_manifest(manifest_path: Path) -> None:
                     slot["scheduled_at"],
                     slot["post_id"],
                     slot["feature_anchor"],
-                    slot.get("slide_01_path"),
-                    slot.get("slide_02_path"),
+                    slot["slide_01_path"],
+                    slot["slide_02_path"],
                     slot.get("caption"),
                     json.dumps(slot.get("hashtags", [])),
-                    media_kind,
-                    media_paths_json,
                 ),
             )
 
@@ -345,18 +309,7 @@ def slots_for_batch(batch_id: str) -> list[dict[str, Any]]:
         rows = db.execute(
             "SELECT * FROM slots WHERE batch_id = ? ORDER BY slot_index", (batch_id,)
         ).fetchall()
-    out: list[dict[str, Any]] = []
-    for r in rows:
-        d = dict(r)
-        if d.get("media_paths"):
-            try:
-                d["media_paths"] = json.loads(d["media_paths"])
-            except Exception:
-                d["media_paths"] = []
-        else:
-            d["media_paths"] = []
-        out.append(d)
-    return out
+    return [dict(r) for r in rows]
 
 
 def get_batch(batch_id: str) -> dict[str, Any] | None:
